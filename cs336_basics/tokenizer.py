@@ -60,6 +60,11 @@ class Tokenizer:
 
             with Pool(self.num_processes) as pool:
                 results = pool.map(self.pretokenize, args_list)
+        
+            for r in results:
+                for item, count in r.items():
+                    self.pretokenized_counts[item] += count
+
         breakpoint()
                     
 
