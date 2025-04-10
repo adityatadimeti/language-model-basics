@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # language-model-basics
 =======
 # CS336 Spring 2025 Assignment 1: Basics
