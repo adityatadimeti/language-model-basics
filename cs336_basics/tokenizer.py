@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import BinaryIO, Tuple
 import os
 import json
 import regex as re
@@ -8,7 +8,7 @@ import multiprocessing
 from multiprocessing import Process, Pool
 from collections import Counter
 
-from pretokenization_example import find_chunk_boundaries
+import heapq
 
 
 class Tokenizer:
@@ -24,7 +24,54 @@ class Tokenizer:
         
         self.vocabulary[self.token_ID] = "<|endoftext|>".encode("utf-8")
         self.token_ID += 1
+        
+    def find_chunk_boundaries(self, 
+        file: BinaryIO, 
+        desired_num_chunks: int, 
+        split_special_token: bytes
+    ) -> list[int]:
+        """
+        Chunk the file into parts that can be counted independently.
+        May return fewer chunks if the boundaries end up overlapping.
+        """
+        assert isinstance(split_special_token, bytes), (
+            "Must represent special token as a bytestring"
+        )
 
+        # Get total file size in bytes
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+
+        chunk_size = file_size // desired_num_chunks
+
+        # Initial guesses for chunk boundary locations, uniformly spaced
+        # Chunks start on previous index, don't include last index
+        chunk_boundaries = [i * chunk_size for i in range(desired_num_chunks + 1)]
+        chunk_boundaries[-1] = file_size
+
+        mini_chunk_size = 4096  # Read ahead by 4k bytes at a time
+
+        for bi in range(1, len(chunk_boundaries) - 1):
+            initial_position = chunk_boundaries[bi]
+            file.seek(initial_position)  # Start at boundary guess
+            while True:
+                mini_chunk = file.read(mini_chunk_size)  # Read a mini chunk
+
+                # If EOF, this boundary should be at the end of the file
+                if mini_chunk == b"":
+                    chunk_boundaries[bi] = file_size
+                    break
+
+                # Find the special token in the mini chunk
+                found_at = mini_chunk.find(split_special_token)
+                if found_at != -1:
+                    chunk_boundaries[bi] = initial_position + found_at
+                    break
+                initial_position += mini_chunk_size
+
+        # Make sure all boundaries are unique, but might be fewer than desired_num_chunks
+        return sorted(set(chunk_boundaries))
 
     def pretokenize(self, args):
         chunk, pattern, PAT_COMPILED = args
@@ -42,10 +89,11 @@ class Tokenizer:
         return local_counts
 
 
-    def train_bpe(self, input_path: str, vocab_size: str, special_tokens: list[str]) -> Tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
+    def train_bpe(self, input_path: str, vocab_size: int, special_tokens: list[str]) -> Tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
+        merges = [] # tuple of bytes
 
         with open(input_path, "rb") as bpe_train_data:  # raw text data to be tokenized
-            boundaries = find_chunk_boundaries(bpe_train_data, self.num_processes, "<|endoftext|>".encode("utf-8"))
+            boundaries = self.find_chunk_boundaries(bpe_train_data, self.num_processes, "<|endoftext|>".encode("utf-8"))
 
             pattern = "|".join(re.escape(token) for token in special_tokens) # We use re.escape since | could appear in special tokens
             PAT_COMPILED = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
@@ -61,11 +109,47 @@ class Tokenizer:
             with Pool(self.num_processes) as pool:
                 results = pool.map(self.pretokenize, args_list)
         
-            for r in results:
-                for item, count in r.items():
+            for r_val in results:
+                for item, count in r_val.items():
                     self.pretokenized_counts[item] += count
+            
+            while (len(self.vocabulary) < vocab_size): # Keep merging until we hit the desired vocab_size
+                max_heap = []
+                for r_val in results:
+                    # Convert Counter items to a list of (token, count) pairs
+                    r_items = list(r_val.items())
+                    for i in range(len(r_items) - 1):
+                        # Each item is a tuple of (token, count)
+                        token1, count1 = r_items[i]
+                        token2, count2 = r_items[i + 1]
+                        count = count1 + count2
+                        heapq.heappush(max_heap, (-count, token1, token2))
 
-        breakpoint()
+                neg_freq, token1, token2 = heapq.heappop(max_heap)
+                max_freq = -neg_freq
+
+                while max_heap and (item := heapq.heappop(max_heap))[0] == neg_freq:
+                    popped_tuple = item[1], item[2] # Tuple of token1, token2
+                    # If we find an item with higher lexicographical value
+                    if popped_tuple > (token1, token2):
+                        token1, token2 = popped_tuple
+                
+                # Now merge
+                
+                new_key = token1 + token2
+                for r_val in results:
+                    r_val[new_key] = r_val[token1] + r_val[token2]
+                    del r_val[token1]
+                    del r_val[token2]
+
+                # Finally, add to self.vocabulary and merges
+                # Convert the merged tokens into bytes and add to vocabulary
+                merged_token = bytes(new_key)  # new_key is already token1 + token2
+                self.vocabulary[self.token_ID] = merged_token
+                merges.append((bytes(token1), bytes(token2)))
+                self.token_ID += 1
+    
+        return self.vocabulary, merges
                     
 
 if __name__ == '__main__':
@@ -78,4 +162,4 @@ if __name__ == '__main__':
     T = Tokenizer()
     stories_valid_path = "data/TinyStoriesV2-GPT4-valid.txt"
     stories_train_path = "data/TinyStoriesV2-GPT4-train.txt"
-    T.train_bpe(stories_valid_path, 0, [""]) # Pass a real vocab size if needed
+    T.train_bpe(stories_valid_path, 300, [""]) 
