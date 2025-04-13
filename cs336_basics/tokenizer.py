@@ -13,12 +13,10 @@ import heapq
 
 class Tokenizer:
     def __init__(self):
-        self.num_processes = 16 # arbitrarily set to 16 here
-        self.vocabulary = {} # Mapping from token ID to bytestring token
-        self.token_ID = 0 # token ID that increments with each new token that's been added
-        self.pretokenized_counts = defaultdict(int) # Map from tuple of bytes of each pretoken, to frequency of that pretoken, for merging
-        
-
+        self.num_processes = 8  # Using 8 instead of 16 for potential speedup
+        self.vocabulary = {}  # Mapping from token ID to bytestring token
+        self.token_ID = 0  # token ID that increments with each new token that's been added
+    
 
     def find_chunk_boundaries(self, 
         file: BinaryIO, 
@@ -69,162 +67,120 @@ class Tokenizer:
         return sorted(set(chunk_boundaries))
 
     def pretokenize(self, args):
-        chunk, pattern, PAT_COMPILED = args
-
-        token_bytes_sequence: List[bytes] = []
-
-        # First, before running pre-tokenization, we have to split on all special tokens. 
-        segment_splits = re.split(pattern, chunk)
-        local_counts = defaultdict(int) # define local dictionary to avoid inter-process communication / locking
-        for segment in segment_splits:
-            # Pretokenize each segment
-            iter = PAT_COMPILED.finditer(segment) # iter now contains an iterable of matches within each segment
-            for match in iter:
-                utf_match = tuple(match.group(0).encode("utf-8"))
-                local_counts[utf_match] += 1
-                token_bytes_sequence.append(utf_match)
+        """Process chunk, strip special tokens, and apply pretokenization."""
+        chunk, special_tokens_pattern, regex_pattern = args
         
-        return local_counts, token_bytes_sequence # Also returning token_bytes to maintain order
-
+        # Split on special tokens
+        segments = re.split(special_tokens_pattern, chunk)
+        
+        # Apply pretokenization to each segment
+        pretokens = []
+        for segment in segments:
+            if not segment:  # Skip empty segments
+                continue
+                
+            matches = regex_pattern.finditer(segment)
+            for match in matches:
+                pretoken = match.group(0).encode('utf-8')
+                pretokens.append(pretoken)
+        
+        return pretokens
 
     def train_bpe(self, input_path: str, vocab_size: int, special_tokens: list[str]) -> Tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
-        merges = [] # tuple of bytes
-
-
+        # Initialize vocabulary with byte values
         self.vocabulary = {i: bytes([i]) for i in range(256)}
         self.token_ID = 256
-
-        # NOTE: later have to check for deduplication?
+        
+        # Add special tokens to vocabulary
         for token_str in special_tokens:
             token_bytes = token_str.encode("utf-8")
             self.vocabulary[self.token_ID] = token_bytes
             self.token_ID += 1
-
-
-        with open(input_path, "rb") as bpe_train_data:  # raw text data to be tokenized
-            boundaries = self.find_chunk_boundaries(bpe_train_data, self.num_processes, "<|endoftext|>".encode("utf-8"))
-
-            pattern = "|".join(re.escape(token) for token in special_tokens) # We use re.escape since | could appear in special tokens
-            PAT_COMPILED = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
-
+        
+        # List of merges to return
+        merges = []
+        
+        with open(input_path, "rb") as bpe_train_data:
+            # Find chunk boundaries using special token
+            special_token_bytes = "<|endoftext|>".encode("utf-8")
+            boundaries = self.find_chunk_boundaries(bpe_train_data, self.num_processes, special_token_bytes)
+            
+            # Create pattern for splitting on special tokens
+            special_tokens_pattern = "|".join(re.escape(token) for token in special_tokens)
+            
+            # Compile regex pattern for pretokenization
+            regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
+            
+            # Process each chunk
             chunks = []
             for start, end in zip(boundaries[:-1], boundaries[1:]):
                 bpe_train_data.seek(start)
-                chunk = bpe_train_data.read(end - start).decode("utf-8", errors="ignore")
+                chunk_data = bpe_train_data.read(end - start)
+                chunk = chunk_data.decode("utf-8", errors="ignore")
                 chunks.append(chunk)
-
-            args_list = [(chunk, pattern, PAT_COMPILED) for chunk in chunks]
-
+            
+            # Process chunks in parallel
+            args_list = [(chunk, special_tokens_pattern, regex_pattern) for chunk in chunks]
+            
             with Pool(self.num_processes) as pool:
-                pretokenized_results = pool.map(self.pretokenize, args_list)
-
-            aggregated_list = [] # Ordered list of pretokenized inputs
-            for local_count, token_sequence in pretokenized_results:
-                aggregated_list.append(token_sequence)
-                for item, count in local_count.items():
-                    self.pretokenized_counts[item] += count
-
-            # Still a bit unclear as to why we use pretokenized_counts
-
-            while (len(self.vocabulary) < vocab_size): # Keep merging until we hit the desired vocab_size
-                pair_counts = Counter()
-                for chunk in aggregated_list:
-                    for i in range(len(chunk) - 1):
-                        # Each item is a tuple of (token, count)
-                        token1 = chunk[i]
-                        token2 = chunk[i + 1]
-                        pair_counts[(token1, token2)] += 1
+                all_pretokens = []
+                for result in pool.map(self.pretokenize, args_list):
+                    all_pretokens.extend(result)
+            
+            # Convert each pretoken to a list of single-byte tokens
+            # and count frequencies
+            words = {}
+            for pretoken in all_pretokens:
+                # Convert to list of single bytes
+                word = tuple(bytes([b]) for b in pretoken)
+                words[word] = words.get(word, 0) + 1
+            
+            # BPE training loop
+            while len(self.vocabulary) < vocab_size:
+                # Count pair frequencies
+                pairs = {}
+                for word, freq in words.items():
+                    for i in range(len(word) - 1):
+                        pair = (word[i], word[i+1])
+                        pairs[pair] = pairs.get(pair, 0) + freq
                 
-                # Identify pair to merge
-                best_pair = max(pair_counts, key=lambda p: (pair_counts[p], p))
+                if not pairs:
+                    break
                 
-                token1, token2 = best_pair
-                new_token_tuple = token1 + token2 # Combining the tuples
-
-                # Now merge
-
-                new_aggregated_list = []
-                for chunk_seq in aggregated_list:
-                    new_chunk_seq = []
-                    i = 0
-                    while i < len(chunk_seq):
-                        # Check if pair at index i matches best_pair
-                        if i < len(chunk_seq) - 1 and (chunk_seq[i], chunk_seq[i+1]) == best_pair:
-                            new_chunk_seq.append(new_token_tuple)
-                            i += 2 # Skip both original tokens
-                        else:
-                            new_chunk_seq.append(chunk_seq[i])
-                            i += 1
-                    if new_chunk_seq:
-                        new_aggregated_list.append(new_chunk_seq)
-
-                # Update the main list for the next iteration
-                aggregated_list = new_aggregated_list
-
-                # Finally, add to self.vocabulary and merges
-                # Convert the merged tokens into bytes and add to vocabulary
-                merged_token = bytes(token1) + bytes(token2)  # new_key is already token1 + token2
-                self.vocabulary[self.token_ID] = merged_token
-                merges.append((bytes(token1), bytes(token2)))
+                # Find most frequent pair
+                max_freq = -1
+                best_pair = None
+                for pair, freq in pairs.items():
+                    if freq > max_freq or (freq == max_freq and pair > best_pair):
+                        max_freq = freq
+                        best_pair = pair
+                
+                # Add to merges list
+                merges.append(best_pair)
+                
+                # Create new token and add to vocabulary
+                first, second = best_pair
+                new_token = first + second
+                self.vocabulary[self.token_ID] = new_token
                 self.token_ID += 1
-    
-        return self.vocabulary, merges
+                
+                # Apply merge to all words
+                new_words = {}
+                for word, freq in words.items():
+                    # Convert to list for easier manipulation
+                    word_list = list(word)
+                    i = 0
+                    while i < len(word_list) - 1:
+                        if word_list[i] == first and word_list[i+1] == second:
+                            word_list[i] = new_token
+                            del word_list[i+1]
+                        else:
+                            i += 1
                     
-
-if __name__ == '__main__':
-    # You might need this on Windows if creating frozen executables,
-    # usually safe to include, but often not strictly necessary on macOS/Linux
-    # for regular script execution.
-    # from multiprocessing import freeze_support
-    # freeze_support()
-
-    import tempfile
-
-    # This is your mini dataset sample.
-    sample_text = """u don't have to be scared of the loud dog, I'll protect you. The mole felt so safe with the little girl. She was very kind and the mole soon came to trust her. He leaned against her and she kept him safe. The mole had found his best friend.
-    <|endoftext|>
-    Once upon a time, in a warm and sunny place, there was a big pit. A little boy named Tom liked to play near the pit. One day, Tom lost his red ball. He was very sad.
-    Tom asked his friend, Sam, to help him search for the ball. They looked high and low, but they could not find the ball. Tom said, "I think my ball fell into the pit."
-    Sam and Tom went close to the pit. They were scared, but they wanted to find the red ball. They looked into the pit, but it was too dark to see. Tom said, "We must go in and search for my ball."
-    They went into the pit to search. It was dark and scary. They could not find the ball. They tried to get out, but the pit was too deep. Tom and Sam were stuck in the pit. They called for help, but no one could hear them. They were sad and scared, and they never got out of the pit.
-    <|endoftext|>
-
-    Tom and Lily were playing with their toys in the living room. They liked to build towers and bridges with their blocks and cars. Tom was very proud of his tall tower. He wanted to make it even taller, so he reached for more blocks.
-    "Tom, can I have some blocks too?" Lily asked. She wanted to make a bridge for her cars.
-    "No, these are mine. Go find your own," Tom said. He did not want to share with his sister. He pulled the blocks closer to him.
-    Lily felt sad and angry. She did not think Tom was being nice. She looked at his tower and had an idea. She decided to pull one of the blocks at the bottom of the tower.
-    Suddenly, the tower fell down with a loud crash. All the blocks and cars scattered on the floor. Tom and Lily were shocked. They felt the floor shake and heard a rumble. It was an earthquake!
-    "Mommy! Daddy!" they cried. They were scared and ran to their parents, who were in the kitchen.
-    "Are you okay, kids?" Mommy asked. She hugged them and checked if they were hurt.
-    "We're okay, Mommy. But our toys are broken," Lily said.
-    "I'm sorry, Lily. But toys are not important. You are important. We are safe and together. That's what matters," Mommy said.
-    Tom felt sorry for what he did. He realized he was selfish and mean to his sister. He saw how scared she was during the earthquake. He wanted to make her happy.
-    "Lily, I'm sorry I did not share with you. You can have all the blocks you want. I love you, sister," Tom said.
-    Lily smiled and hugged him. She forgave him and thanked him. She loved him too.
-    They went back to the living room and cleaned up their toys. They decided to build something together. They made a big house with a garden and a fence. They put their cars and dolls inside. They were happy and proud of their work.
-    Mommy and Daddy came to see their house. They praised them and gave them a treat. It was a lemon cake. It was sour, but they liked it. They learned that sharing is caring, and that family is sweet.
-    <|endoftext|>
-    """
-
-    # Create a temporary file and write the sample_text into it.
-    with tempfile.NamedTemporaryFile("w+", delete=False) as temp_file:
-        temp_file.write(sample_text)
-        temp_file.flush()
-        temp_path = temp_file.name
-
-    # Instantiate your Tokenizer and run the training.
-    tokenizer = Tokenizer()
-    vocab, merges = tokenizer.train_bpe(
-        input_path=temp_path, 
-        vocab_size=300, 
-        special_tokens=["<|endoftext|>"]
-    )
-
-    print("Final vocabulary size:", len(vocab))
-    print("First 10 merges:", merges[:10])
-
-
-    # T = Tokenizer()
-    # stories_valid_path = "data/TinyStoriesV2-GPT4-valid.txt"
-    # stories_train_path = "data/TinyStoriesV2-GPT4-train.txt"
-    # T.train_bpe(stories_valid_path, 300, ["<|endoftext|>".encode("utf-8")])  
+                    # Convert back to tuple and update frequency
+                    word_tuple = tuple(word_list)
+                    new_words[word_tuple] = new_words.get(word_tuple, 0) + freq
+                
+                words = new_words
+        
+        return self.vocabulary, merges
