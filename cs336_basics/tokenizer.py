@@ -1,3 +1,4 @@
+
 from typing import BinaryIO, Tuple
 import os
 import json
@@ -7,13 +8,15 @@ from typing import Dict, List, Set, DefaultDict
 import multiprocessing
 from multiprocessing import Process, Pool
 from collections import Counter
+import time
+import cProfile
 
 import heapq
 
 
 class Tokenizer:
     def __init__(self):
-        self.num_processes = 8  # Using 8 instead of 16 for potential speedup
+        self.num_processes = 8  
         self.vocabulary = {}  # Mapping from token ID to bytestring token
         self.token_ID = 0  # token ID that increments with each new token that's been added
     
@@ -68,22 +71,33 @@ class Tokenizer:
 
     def pretokenize(self, args):
         """Process chunk, strip special tokens, and apply pretokenization."""
-        chunk, special_tokens_pattern, regex_pattern = args
-        
+        #chunk, special_tokens_pattern, regex_pattern = args
+        input_path, boundary_start, boundary_end, special_tokens_pattern, regex_pattern = args
+
+        process_id = os.getpid()
         # Split on special tokens
-        segments = re.split(special_tokens_pattern, chunk)
-        
-        # Apply pretokenization to each segment
-        pretokens = []
-        for segment in segments:
-            if not segment:  # Skip empty segments
-                continue
-                
-            matches = regex_pattern.finditer(segment)
-            for match in matches:
-                pretoken = match.group(0).encode('utf-8')
-                pretokens.append(pretoken)
-        
+
+        # Open the file and read the chunk
+        with open(input_path, "rb") as f:
+            f.seek(boundary_start)
+            chunk_data = f.read(boundary_end - boundary_start)
+            chunk = chunk_data.decode("utf-8", errors="ignore")
+            segments = re.split(special_tokens_pattern, chunk)
+
+            #print(f"Process {process_id}: Split into {len(segments)} segments")
+            # Apply pretokenization to each segment
+            pretokens = []
+            for segment in segments:
+                if not segment:  # Skip empty segments
+                    continue
+                    
+                matches = regex_pattern.finditer(segment)
+                for match in matches:
+                    pretoken = match.group(0).encode('utf-8')
+                    pretokens.append(pretoken)
+
+            
+            #print(f"Process {process_id}: returning pretokens.")
         return pretokens
 
     def train_bpe(self, input_path: str, vocab_size: int, special_tokens: list[str]) -> Tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
@@ -112,21 +126,35 @@ class Tokenizer:
             regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
             
             # Process each chunk
-            chunks = []
-            for start, end in zip(boundaries[:-1], boundaries[1:]):
-                bpe_train_data.seek(start)
-                chunk_data = bpe_train_data.read(end - start)
-                chunk = chunk_data.decode("utf-8", errors="ignore")
-                chunks.append(chunk)
-            
+            # chunks = []
+            # for start, end in zip(boundaries[:-1], boundaries[1:]):
+            #     bpe_train_data.seek(start)
+            #     chunk_data = bpe_train_data.read(end - start)
+            #     chunk = chunk_data.decode("utf-8", errors="ignore")
+            #     chunks.append(chunk)
+
+
             # Process chunks in parallel
-            args_list = [(chunk, special_tokens_pattern, regex_pattern) for chunk in chunks]
+            #print(f"Starting pretokenization of chunks...")
+            #args_list = [(chunk, special_tokens_pattern, regex_pattern) for chunk in chunks]
+            args_list = [(input_path, boundary_start, boundary_end,  special_tokens_pattern, regex_pattern) for (boundary_start, boundary_end) in zip(boundaries[:-1], boundaries[1:])]
+            
+            
+            #Profile the parallel processing
+            # profiler = cProfile.Profile()
+            # profiler.enable()
             
             with Pool(self.num_processes) as pool:
                 all_pretokens = []
                 for result in pool.map(self.pretokenize, args_list):
                     all_pretokens.extend(result)
             
+            # profiler.disable()
+            # print("\nPretokenization profiling results:")
+            # profiler.print_stats(sort='cumulative')
+
+            
+            #print("Finished collecting")
             # Convert each pretoken to a list of single-byte tokens
             # and count frequencies
             words = {}
@@ -135,14 +163,24 @@ class Tokenizer:
                 word = tuple(bytes([b]) for b in pretoken)
                 words[word] = words.get(word, 0) + 1
             
+            #print("Started merging.")
+            # At the beginning of the train_bpe method, before the loop:
+            last_progress_time = time.time()
+            
+            pairs = {}
+            for word, freq in words.items():
+                for i in range(len(word) - 1):
+                    pair = (word[i], word[i+1])
+                    pairs[pair] = pairs.get(pair, 0) + freq
+            
             # BPE training loop
             while len(self.vocabulary) < vocab_size:
-                # Count pair frequencies
-                pairs = {}
-                for word, freq in words.items():
-                    for i in range(len(word) - 1):
-                        pair = (word[i], word[i+1])
-                        pairs[pair] = pairs.get(pair, 0) + freq
+                #current_time = time.time()
+                # if current_time - last_progress_time >= 30:
+                #     print(f"\rProgress: {len(self.vocabulary)}/{vocab_size} tokens ({len(self.vocabulary)/vocab_size*100:.1f}%)", end="", flush=True)
+                #     last_progress_time = current_time
+                # Inside the BPE training loop:
+                #print(f"\rProgress: {len(self.vocabulary)}/{vocab_size} tokens ({len(self.vocabulary)/vocab_size*100:.1f}%)", end="")
                 
                 if not pairs:
                     break
@@ -172,8 +210,26 @@ class Tokenizer:
                     i = 0
                     while i < len(word_list) - 1:
                         if word_list[i] == first and word_list[i+1] == second:
+                            # Remove the old pairs from the count
+                            if i > 0:
+                                pairs[(word_list[i-1], word_list[i])] -= freq
+                            
+                            # Remove the pair being merged
+                            pairs[(word_list[i], word_list[i+1])] -= freq
+                            
+                            if i < len(word_list) - 2:
+                                pairs[(word_list[i+1], word_list[i+2])] -= freq
+                            
+                            # Apply the merge
                             word_list[i] = new_token
                             del word_list[i+1]
+                            
+                            # Add the new pairs to the count
+                            if i > 0:
+                                pairs[(word_list[i-1], word_list[i])] = pairs.get((word_list[i-1], word_list[i]), 0) + freq
+                            
+                            if i < len(word_list) - 1:
+                                pairs[(word_list[i], word_list[i+1])] = pairs.get((word_list[i], word_list[i+1]), 0) + freq
                         else:
                             i += 1
                     
