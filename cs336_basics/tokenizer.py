@@ -125,43 +125,32 @@ class Tokenizer:
             regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
             
             # Process chunks in parallel
-            print(f"Starting pretokenization of chunks...")
+            pretokenize_start_time = time.time()
             #args_list = [(chunk, special_tokens_pattern, regex_pattern) for chunk in chunks]
             args_list = [(input_path, boundary_start, boundary_end,  special_tokens_pattern, regex_pattern) for (boundary_start, boundary_end) in zip(boundaries[:-1], boundaries[1:])]
             
             
-            #Profile the parallel processing
-            # profiler = cProfile.Profile()
-            # profiler.enable()
-            
             with Pool(self.num_processes) as pool:
                 chunk_counters = pool.map(self.pretokenize, args_list)
-            
+             
+            pretokenize_end_time = time.time()
+
+            sum_start = time.time()
             words = sum(chunk_counters, Counter())
-
-            # profiler.disable()
-            # print("\nPretokenization profiling results:")
-            # profiler.print_stats(sort='cumulative')
-
             
-            #print("Finished collecting")
-            # Convert each pretoken to a list of single-byte tokens
-            # and count frequencies
 
-            
-            print("Started merging.")
-            # At the beginning of the train_bpe method, before the loop:
-            last_progress_time = time.time()
-            
             pairs = {}
             for word, freq in words.items():
                 for i in range(len(word) - 1):
                     pair = (word[i], word[i+1])
                     pairs[pair] = pairs.get(pair, 0) + freq
+
+            sum_end = time.time()
+            
             
             # BPE training loop
             while len(self.vocabulary) < vocab_size:
-                #current_time = time.time()
+                
                 # if current_time - last_progress_time >= 30:
                 #     print(f"\rProgress: {len(self.vocabulary)}/{vocab_size} tokens ({len(self.vocabulary)/vocab_size*100:.1f}%)", end="", flush=True)
                 #     last_progress_time = current_time
@@ -224,5 +213,4 @@ class Tokenizer:
                     new_words[word_tuple] = new_words.get(word_tuple, 0) + freq
                 
                 words = new_words
-        
         return self.vocabulary, merges
