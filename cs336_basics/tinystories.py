@@ -6,9 +6,9 @@ import multiprocessing
 def main():
     T = Tokenizer()
 
-    #tiny_stories_train_path = "./data/TinyStoriesV2-GPT4-train.txt"
+    tiny_stories_train_path = "./data/TinyStoriesV2-GPT4-train.txt"
     #tiny_stories_train_path = "./sliced_files/slice_10percent.txt"
-    tiny_stories_train_path = "./data/TinyStoriesV2-GPT4-valid.txt"
+    #tiny_stories_train_path = "./data/TinyStoriesV2-GPT4-valid.txt"
     special_tokens = ["<|endoftext|>"]
     vocab_size = 10000
 

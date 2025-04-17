@@ -95,6 +95,7 @@ class Tokenizer:
                 for match in matches:
                     pretoken = match.group(0).encode('utf-8')
                     word = tuple(bytes([b]) for b in pretoken)
+
                     word_counter[word] += 1
         return word_counter
 

@@ -1,0 +1,93 @@
+--- a/tokenizer.py
++++ b/tokenizer.py
+@@ def train_bpe(self, input_path: str, vocab_size: int, special_tokens: list[str]) -> Tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
+         # At the beginning of the train_bpe method, before the loop:
+-        pairs = {}
++        pairs: Dict[tuple[bytes,bytes], int] = {}
+         for word, freq in words.items():
+             for i in range(len(word) - 1):
+                 pair = (word[i], word[i+1])
+                 pairs[pair] = pairs.get(pair, 0) + freq
++
++        # build inverted index: track which words contain each pair
++        occurrences: DefaultDict[tuple[bytes,bytes], Set[tuple[bytes,...]]] = defaultdict(set)
++        for w in words:
++            for p in zip(w, w[1:]):
++                occurrences[p].add(w)
+ 
+         # BPE training loop
+-        while len(self.vocabulary) < vocab_size:
++        while len(self.vocabulary) < vocab_size and pairs:
+             #current_time = time.time()
+             # if current_time - last_progress_time >= 30:
+             #     print(f"\rProgress: {len(self.vocabulary)}/{vocab_size} tokens ({len(self.vocabulary)/vocab_size*100:.1f}%)", end="", flush=True)
+             #     last_progress_time = current_time
+-            if not pairs:
+-                break
+-
+-            # Find most frequent pair
+-            max_freq = -1
+-            best_pair = None
+-            for pair, freq in pairs.items():
+-                if freq > max_freq or (freq == max_freq and pair > best_pair):
+-                    max_freq = freq
+-                    best_pair = pair
++            # pick the pair with highest freq, tiebreaker = lex order of the byte‑tuples
++            best_pair = max(pairs.keys(), key=lambda p: (pairs[p], p))
++            max_freq = pairs[best_pair]
++            if max_freq <= 0:
++                break
+ 
+          # Add to merges list
+          merges.append(best_pair)
+@@
+          new_token = first + second
+          self.vocabulary[self.token_ID] = new_token
+          self.token_ID += 1
+-                
+-            # Apply merge to all words
+-            new_words = {}
+-            for word, freq in words.items():
+-                # Convert to list for easier manipulation
+-                word_list = list(word)
+-                i = 0
+-                while i < len(word_list) - 1:
+-                    if word_list[i] == first and word_list[i+1] == second:
+-                        ...
+-                    else:
+-                        i += 1
+-                
+-                word_tuple = tuple(word_list)
+-                new_words[word_tuple] = new_words.get(word_tuple, 0) + freq
+-            
+-            words = new_words
++            # Only reprocess words that actually contain this pair
++            affected = occurrences.pop(best_pair, set())
++            for w in list(affected):
++                freq = words[w]
++                w_list = list(w)
++                i = 0
++                while i < len(w_list) - 1:
++                    if w_list[i] == first and w_list[i+1] == second:
++                        # decrement old neighbors in `pairs` and remove this word from their occs
++                        for nbr in ((i>0 and (w_list[i-1],w_list[i])), (w_list[i],w_list[i+1]), (i+2<len(w_list) and (w_list[i+1],w_list[i+2]))):
++                            if nbr and nbr in pairs:
++                                pairs[nbr] -= freq
++                                occurrences[nbr].discard(w)
++                                if pairs[nbr] <= 0:
++                                    pairs.pop(nbr, None)
++
++                        # do the merge splice
++                        w_list[i] = new_token
++                        del w_list[i+1]
++
++                        # increment new neighbors
++                        for nbr in ((i>0 and (w_list[i-1],w_list[i])), (i+1<len(w_list) and (w_list[i],w_list[i+1]))):
++                            if nbr:
++                                pairs[nbr] = pairs.get(nbr,0) + freq
++                                occurrences[nbr].add(tuple(w_list))
++                    else:
++                        i += 1
++                # replace old word‐entry with merged form
++                words.pop(w)
++                words[tuple(w_list)] = freq
