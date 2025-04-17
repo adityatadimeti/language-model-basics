@@ -6,8 +6,8 @@ import os
 
 def main():
     # Configuration variables (change these to switch datasets and modes)
-    dataset = "owt"  # "owt" or "tinystories"
-    data_mode = "valid"  # "train" or "valid"
+    dataset = "tinystories"  # "owt" or "tinystories"
+    data_mode = "train"  # "train" or "valid"
     
     # Set paths based on configuration
     base_data_dir = "./data"
@@ -32,7 +32,7 @@ def main():
     
     T = Tokenizer()
     special_tokens = ["<|endoftext|>"]
-    vocab_size = 32000
+    vocab_size = 10000
 
     print(f"Starting BPE training on {dataset} {data_mode} dataset...")
     start_time = time.time()
@@ -76,7 +76,7 @@ def analysis(json_path):
     print(f"Vocabulary size: {len(vocab)}")
     print(f"Longest token: '{longest_token}' (length: {len(longest_token)})")
     print(f"Token ID: {longest_id}")
-    
+
 if __name__ == '__main__':
     main()
     # To analyze a specific vocabulary file:

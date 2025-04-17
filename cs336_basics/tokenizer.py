@@ -10,6 +10,7 @@ from multiprocessing import Process, Pool
 from collections import Counter
 import time
 import cProfile
+from tqdm import tqdm
 
 import heapq
 
@@ -87,6 +88,10 @@ class Tokenizer:
 
             #print(f"Process {process_id}: Split into {len(segments)} segments")
             # Apply pretokenization to each segment
+            # Only wrap with tqdm in the first worker process
+            pid_tuple = multiprocessing.current_process()._identity
+            if pid_tuple and pid_tuple[0] == 1:
+                segments = tqdm(segments, desc="Pretokenizing", dynamic_ncols=True)
             for segment in segments:
                 if not segment:  # Skip empty segments
                     continue
@@ -124,39 +129,24 @@ class Tokenizer:
             # Compile regex pattern for pretokenization
             regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
             
-            # Process chunks in parallel
-            pretokenize_start_time = time.time()
             #args_list = [(chunk, special_tokens_pattern, regex_pattern) for chunk in chunks]
             args_list = [(input_path, boundary_start, boundary_end,  special_tokens_pattern, regex_pattern) for (boundary_start, boundary_end) in zip(boundaries[:-1], boundaries[1:])]
             
             
             with Pool(self.num_processes) as pool:
                 chunk_counters = pool.map(self.pretokenize, args_list)
-             
-            pretokenize_end_time = time.time()
-
-            sum_start = time.time()
             words = sum(chunk_counters, Counter())
             
 
             pairs = {}
-            for word, freq in words.items():
+            for word, freq in tqdm(words.items(), desc="Pairs initialization", dynamic_ncols=True):
                 for i in range(len(word) - 1):
                     pair = (word[i], word[i+1])
                     pairs[pair] = pairs.get(pair, 0) + freq
-
-            sum_end = time.time()
-            
             
             # BPE training loop
+            pbar = tqdm(total=vocab_size - len(self.vocabulary), desc="Merging step")
             while len(self.vocabulary) < vocab_size:
-                
-                # if current_time - last_progress_time >= 30:
-                #     print(f"\rProgress: {len(self.vocabulary)}/{vocab_size} tokens ({len(self.vocabulary)/vocab_size*100:.1f}%)", end="", flush=True)
-                #     last_progress_time = current_time
-                # Inside the BPE training loop:
-                #print(f"\rProgress: {len(self.vocabulary)}/{vocab_size} tokens ({len(self.vocabulary)/vocab_size*100:.1f}%)", end="")
-                
                 if not pairs:
                     break
                 
@@ -175,6 +165,7 @@ class Tokenizer:
                 first, second = best_pair
                 new_token = first + second
                 self.vocabulary[self.token_ID] = new_token
+                
                 self.token_ID += 1
                 
                 # Apply merge to all words
@@ -213,4 +204,5 @@ class Tokenizer:
                     new_words[word_tuple] = new_words.get(word_tuple, 0) + freq
                 
                 words = new_words
+                pbar.update(1)
         return self.vocabulary, merges
