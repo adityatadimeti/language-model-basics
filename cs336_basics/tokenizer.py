@@ -77,6 +77,7 @@ class Tokenizer:
         process_id = os.getpid()
         # Split on special tokens
 
+        word_counter = Counter()
         # Open the file and read the chunk
         with open(input_path, "rb") as f:
             f.seek(boundary_start)
@@ -86,7 +87,6 @@ class Tokenizer:
 
             #print(f"Process {process_id}: Split into {len(segments)} segments")
             # Apply pretokenization to each segment
-            pretokens = []
             for segment in segments:
                 if not segment:  # Skip empty segments
                     continue
@@ -94,11 +94,9 @@ class Tokenizer:
                 matches = regex_pattern.finditer(segment)
                 for match in matches:
                     pretoken = match.group(0).encode('utf-8')
-                    pretokens.append(pretoken)
-
-            
-            #print(f"Process {process_id}: returning pretokens.")
-        return pretokens
+                    word = tuple(bytes([b]) for b in pretoken)
+                    word_counter[word] += 1
+        return word_counter
 
     def train_bpe(self, input_path: str, vocab_size: int, special_tokens: list[str]) -> Tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
         # Initialize vocabulary with byte values
@@ -125,17 +123,8 @@ class Tokenizer:
             # Compile regex pattern for pretokenization
             regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
             
-            # Process each chunk
-            # chunks = []
-            # for start, end in zip(boundaries[:-1], boundaries[1:]):
-            #     bpe_train_data.seek(start)
-            #     chunk_data = bpe_train_data.read(end - start)
-            #     chunk = chunk_data.decode("utf-8", errors="ignore")
-            #     chunks.append(chunk)
-
-
             # Process chunks in parallel
-            #print(f"Starting pretokenization of chunks...")
+            print(f"Starting pretokenization of chunks...")
             #args_list = [(chunk, special_tokens_pattern, regex_pattern) for chunk in chunks]
             args_list = [(input_path, boundary_start, boundary_end,  special_tokens_pattern, regex_pattern) for (boundary_start, boundary_end) in zip(boundaries[:-1], boundaries[1:])]
             
@@ -145,10 +134,10 @@ class Tokenizer:
             # profiler.enable()
             
             with Pool(self.num_processes) as pool:
-                all_pretokens = []
-                for result in pool.map(self.pretokenize, args_list):
-                    all_pretokens.extend(result)
+                chunk_counters = pool.map(self.pretokenize, args_list)
             
+            words = sum(chunk_counters, Counter())
+
             # profiler.disable()
             # print("\nPretokenization profiling results:")
             # profiler.print_stats(sort='cumulative')
@@ -157,13 +146,9 @@ class Tokenizer:
             #print("Finished collecting")
             # Convert each pretoken to a list of single-byte tokens
             # and count frequencies
-            words = {}
-            for pretoken in all_pretokens:
-                # Convert to list of single bytes
-                word = tuple(bytes([b]) for b in pretoken)
-                words[word] = words.get(word, 0) + 1
+
             
-            #print("Started merging.")
+            print("Started merging.")
             # At the beginning of the train_bpe method, before the loop:
             last_progress_time = time.time()
             
