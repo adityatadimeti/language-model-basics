@@ -4,10 +4,12 @@ import time
 import multiprocessing
 import os
 
+
+
 def main():
     # Configuration variables (change these to switch datasets and modes)
     dataset = "tinystories"  # "owt" or "tinystories"
-    data_mode = "train"  # "train" or "valid"
+    data_mode = "valid"  # "train" or "valid"
     
     # Set paths based on configuration
     base_data_dir = "./data"
@@ -30,9 +32,14 @@ def main():
     vocab_json = f"{output_base}_vocab.json"
     merges_txt = f"{output_base}_merges.txt"
     
-    T = Tokenizer()
+    T = Tokenizer(vocab = None, merges = None, special_tokens=None)
     special_tokens = ["<|endoftext|>"]
-    vocab_size = 10000
+    vocab_size = None
+    if dataset == "owt":
+        vocab_size = 32000
+    else:
+        vocab_size = 10000
+    
 
     print(f"Starting BPE training on {dataset} {data_mode} dataset...")
     start_time = time.time()
