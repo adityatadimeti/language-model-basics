@@ -57,6 +57,42 @@ class Tokenizer:
         
         return created_tokenizer
 
+    @classmethod
+    def from_files(
+        cls,
+        vocab_filepath: str,
+        merges_filepath: str,
+        special_tokens: list[str] | None = None
+    ):
+        # --- load vocab (as before) ---
+        with open(vocab_filepath, 'r', encoding='utf-8') as vf:
+            vocab_dict = json.load(vf)
+            vocab = {int(k): v.encode('utf-8') for k, v in vocab_dict.items()}
+
+        # --- load merges ---
+        merges: list[tuple[bytes, bytes]] = []
+        if merges_filepath.lower().endswith('.json'):
+            # merges is a JSON list‑of‑pairs
+            with open(merges_filepath, 'r', encoding='utf-8') as mf:
+                merges_data = json.load(mf)
+            # assume merges_data is like [["t","h"], ["e","r"], …]
+            for first, second in merges_data:
+                merges.append((first.encode('utf-8'), second.encode('utf-8')))
+        else:
+            # merges is a plain .txt file, one "first second" per line
+            with open(merges_filepath, 'r', encoding='utf-8') as mf:
+                for line in mf:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    # split on whitespace → two tokens
+                    first, second = line.split(None, 1)
+                    merges.append((first.encode('utf-8'), second.encode('utf-8')))
+
+        # create the tokenizer
+        return cls(vocab=vocab, merges=merges, special_tokens=special_tokens)
+
+
     def _apply_bpe_merges(self, pretoken: bytes) -> list[bytes]:
         """
         Apply the learned BPE merges to a single pre‑token.
@@ -157,7 +193,7 @@ class Tokenizer:
         Apply merging 
         """
         final_ids: list[int] = []
-        for pretoken in all_pretokens:
+        for pretoken in tqdm(all_pretokens, desc="Applying BPE merges", dynamic_ncols=True):
             if pretoken.decode('utf-8', errors="replace") in self.special_tokens:
                 final_ids.append(self.inv_vocab[pretoken])
                 continue
@@ -184,7 +220,10 @@ class Tokenizer:
 
         regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
 
-        for chunk in iterable:
+        for chunk in tqdm(iterable,
+                      desc="Streaming BPE-encode",
+                      total=None,          
+                      dynamic_ncols=True):
             segments = split_re.split(chunk) if split_re else [chunk]
             for seg in segments:
                 if not seg:
@@ -592,7 +631,6 @@ class Tokenizer:
                 # Find the best pair using single-pass max() with custom key function
                 # This combines frequency and lexicographic ordering in one step
                 best_pair = max(byte_pair_frequencies, key=lambda x: (byte_pair_frequencies[x], x))
-                best_freq = byte_pair_frequencies[best_pair]
                 
                 # Add to merges list
                 merges.append(best_pair)

@@ -8,7 +8,7 @@ import os
 
 def main():
     # Configuration variables (change these to switch datasets and modes)
-    dataset = "owt"  # "owt" or "tinystories"
+    dataset = "tinystories"  # "owt" or "tinystories"
     data_mode = "train"  # "train" or "valid"
     
     # Set paths based on configuration
@@ -57,15 +57,19 @@ def main():
                              for k, v in vocab.items()}
         json.dump(serializable_vocab, f, indent=2)
     print(f"Vocabulary saved to {vocab_json}")
+    
 
-    # Save merges as a text file
-    with open(merges_txt, "w") as f:
-        for merge in merges:
-            # Convert bytes to strings for writing to file
-            first = merge[0].decode('utf-8', errors='replace') if isinstance(merge[0], bytes) else merge[0]
-            second = merge[1].decode('utf-8', errors='replace') if isinstance(merge[1], bytes) else merge[1]
+    
+    with open(merges_txt, "w", encoding="utf-8") as f:
+        for first_b, second_b in merges:
+            # decode each side (they’re bytes) back to UTF‑8 strings
+            first  = first_b.decode("utf-8", errors="replace")
+            second = second_b.decode("utf-8", errors="replace")
             f.write(f"{first} {second}\n")
     print(f"Merges saved to {merges_txt}")
+
+
+
 
     # Print some statistics
     print(f"Trained BPE in {end_time - start_time:.2f} seconds")
