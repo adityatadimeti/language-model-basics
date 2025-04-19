@@ -81,7 +81,7 @@ def analysis(json_path):
         vocab = json.load(f)
     
     # Find the longest value in the vocabulary
-    longest_token = max(vocab.values(), key=len)
+    longest_token = max(vocab.values(), key=lambda x: len(x.encode("utf-8")))
     longest_id = [k for k, v in vocab.items() if v == longest_token][0]
     
     print(f"Analyzing vocabulary from {json_path}")
@@ -90,6 +90,6 @@ def analysis(json_path):
     print(f"Token ID: {longest_id}")
 
 if __name__ == '__main__':
-    main()
+    #main()
     # To analyze a specific vocabulary file:
-    #analysis("data/owt_vocab.json")
+    analysis("data/owt_vocab_train_copy.json")
