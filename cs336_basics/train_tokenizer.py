@@ -8,8 +8,8 @@ import os
 
 def main():
     # Configuration variables (change these to switch datasets and modes)
-    dataset = "tinystories"  # "owt" or "tinystories"
-    data_mode = "valid"  # "train" or "valid"
+    dataset = "owt"  # "owt" or "tinystories"
+    data_mode = "train"  # "train" or "valid"
     
     # Set paths based on configuration
     base_data_dir = "./data"
@@ -33,6 +33,7 @@ def main():
     merges_txt = f"{output_base}_merges.txt"
     
     T = Tokenizer(vocab = None, merges = None, special_tokens=None)
+
     special_tokens = ["<|endoftext|>"]
     vocab_size = None
     if dataset == "owt":
@@ -87,4 +88,4 @@ def analysis(json_path):
 if __name__ == '__main__':
     main()
     # To analyze a specific vocabulary file:
-    # analysis("data/owt_vocab.json")
+    #analysis("data/owt_vocab.json")

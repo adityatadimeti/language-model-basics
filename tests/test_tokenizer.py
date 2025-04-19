@@ -74,34 +74,34 @@ def get_tokenizer_from_vocab_merges_path(
     return get_tokenizer(vocab, merges, special_tokens)
 
 
-# def test_roundtrip_empty():
-#     tokenizer = get_tokenizer_from_vocab_merges_path(
-#         vocab_path=VOCAB_PATH,
-#         merges_path=MERGES_PATH,
-#     )
-#     test_string = ""
-#     encoded_ids = tokenizer.encode(test_string)
-#     decoded_string = tokenizer.decode(encoded_ids)
-#     assert test_string == decoded_string
+def test_roundtrip_empty():
+    tokenizer = get_tokenizer_from_vocab_merges_path(
+        vocab_path=VOCAB_PATH,
+        merges_path=MERGES_PATH,
+    )
+    test_string = ""
+    encoded_ids = tokenizer.encode(test_string)
+    decoded_string = tokenizer.decode(encoded_ids)
+    assert test_string == decoded_string
 
 
-# def test_empty_matches_tiktoken():
-#     reference_tokenizer = tiktoken.get_encoding("gpt2")
-#     tokenizer = get_tokenizer_from_vocab_merges_path(
-#         vocab_path=VOCAB_PATH,
-#         merges_path=MERGES_PATH,
-#     )
-#     test_string = ""
+def test_empty_matches_tiktoken():
+    reference_tokenizer = tiktoken.get_encoding("gpt2")
+    tokenizer = get_tokenizer_from_vocab_merges_path(
+        vocab_path=VOCAB_PATH,
+        merges_path=MERGES_PATH,
+    )
+    test_string = ""
 
-#     reference_ids = reference_tokenizer.encode(test_string)
-#     ids = tokenizer.encode(test_string)
-#     assert ids == reference_ids
+    reference_ids = reference_tokenizer.encode(test_string)
+    ids = tokenizer.encode(test_string)
+    assert ids == reference_ids
 
-#     tokenized_string = [tokenizer.decode([x]) for x in ids]
-#     assert tokenized_string == []
+    tokenized_string = [tokenizer.decode([x]) for x in ids]
+    assert tokenized_string == []
 
-#     assert tokenizer.decode(ids) == test_string
-#     assert reference_tokenizer.decode(reference_ids) == test_string
+    assert tokenizer.decode(ids) == test_string
+    assert reference_tokenizer.decode(reference_ids) == test_string
 
 
 def test_roundtrip_single_character():
@@ -222,7 +222,9 @@ def test_roundtrip_unicode_string_with_special_tokens():
     )
     test_string = "Héllò hôw <|endoftext|><|endoftext|> are ü? 🙃<|endoftext|>"
     encoded_ids = tokenizer.encode(test_string)
+    #breakpoint()
     tokenized_string = [tokenizer.decode([x]) for x in encoded_ids]
+    #breakpoint()
     # Ensure the special <|endoftext|> token is preserved
     assert tokenized_string.count("<|endoftext|>") == 3
 

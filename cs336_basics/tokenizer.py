@@ -72,6 +72,7 @@ class Tokenizer:
             Sequence of bytes tokens after all merges (e.g. [b'the']).
         """
         # Start as list of 1‑byte tokens
+
         tokens = [bytes([b]) for b in pretoken]
 
         for first, second in self.merges:          # each is bytes
@@ -98,7 +99,6 @@ class Tokenizer:
         Step 1: Pretokenize, representing each pretoken as a sequence of UTF-8 bytes
         
         """
-        breakpoint()
         desired_chunk_size = 100 * 1024 * 1024   # 100 MB
         text_size = len(text) # rough approximation
 
@@ -120,11 +120,22 @@ class Tokenizer:
         print(f"→ Gigs per worker (avg): {gigs_per_worker:.2f} GB")
         
         blob = text.encode("utf‑8")
-        special_token_bytes = "<|endoftext|>".encode("utf-8")
+        
+        if not self.special_tokens:
+            special_token_bytes = "<|endoftext|>".encode("utf-8")
+        else:
+            special_token_bytes = max(self.special_tokens, key=len).encode("utf-8")
         boundaries = self.find_chunk_boundaries_from_bytes(blob, desired_num_chunks, special_token_bytes)
         
         # Create pattern for splitting on special tokens
-        special_tokens_pattern = "|".join(re.escape(token) for token in self.special_tokens)
+
+        sorted_tokens = sorted(self.special_tokens, key= len, reverse=True)
+        # 2) Escape and join into an alternation
+        escaped = [re.escape(tok) for tok in sorted_tokens]
+        special_tokens_pattern = re.compile(f"({'|'.join(escaped)})")
+        # 3) Use a capturing group around the whole alternation
+        #special_tokens_pattern = re.compile(f"({special_tokens_pattern})")
+        #special_tokens_pattern = "|".join(re.escape(token) for token in self.special_tokens)
         
         # Compile regex pattern for pretokenization
         regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
@@ -141,14 +152,15 @@ class Tokenizer:
                     desc="Pretokenizing chunks",
                     dynamic_ncols=True):
                 all_pretokens.extend(sub)  
-        
+
         """
         Apply merging 
         """
-        breakpoint()
         final_ids: list[int] = []
-
         for pretoken in all_pretokens:
+            if pretoken.decode('utf-8', errors="replace") in self.special_tokens:
+                final_ids.append(self.inv_vocab[pretoken])
+                continue
             merged_tokens = self._apply_bpe_merges(pretoken)  # list[bytes]
 
             for tok in merged_tokens:
@@ -162,17 +174,49 @@ class Tokenizer:
 
     def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
         """
-        Given an iterable of strings (e.g., a Python file handle), return a generator that lazily yields token IDs. This is
-        required for memory-efficient tokenization of large files that we cannot directly load into memory.
+        Lazily tokenize lines without loading the entire text into memory.
         """
+        if self.special_tokens:
+            sorted_tokens = sorted(self.special_tokens, key=len, reverse=True)
+            split_re = re.compile(f"({'|'.join(re.escape(tok) for tok in sorted_tokens)})")
+        else:
+            split_re = None
 
-        return iter([0])
+        regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
+
+        for chunk in iterable:
+            segments = split_re.split(chunk) if split_re else [chunk]
+            for seg in segments:
+                if not seg:
+                    continue
+                if seg in self.special_tokens:
+                    yield self.inv_vocab[seg.encode("utf-8")]
+                    continue
+                for m in regex_pattern.finditer(seg):
+                    pre = m.group(0).encode("utf-8")
+                    for merged in self._apply_bpe_merges(pre):
+                        try:
+                            yield self.inv_vocab[merged]
+                        except KeyError:
+                            raise ValueError(f"Token {merged!r} not in vocabulary")
+
     
     def decode(self, ids: list[int]) -> str:
         """
         Decode a sequence of token IDs into text.
         """
+        output = ""
+        replacement = "\uFFFD"
 
+        byte_sequence = []
+        for id in ids:
+            if id in self.vocabulary:
+                byte_sequence.append(self.vocabulary[id])
+            else:
+                pass
+        
+        combined_bytes = b''.join(byte_sequence)
+        return combined_bytes.decode("utf-8", errors="replace")
 
     def find_chunk_boundaries_from_bytes(
         self,
@@ -294,16 +338,57 @@ class Tokenizer:
         chunk_data = source[boundary_start:boundary_end] 
         chunk = chunk_data.decode("utf-8", errors="ignore")
 
-        segments = re.split(special_tokens_pattern, chunk)
+        special_tokens_dict = {}
+        sorted_special_tokens = sorted(self.special_tokens, key=len, reverse=True)
+        special_tokens_positions = []
+        
+        # Find all occurrences of each special token
+        for token in sorted_special_tokens:
+            start_pos = 0
+            while True:
+                start_pos = chunk.find(token, start_pos)
+                if start_pos == -1:
+                    break
+                end_pos = start_pos + len(token)
+                special_tokens_positions.append((start_pos, end_pos, token))
+                start_pos += 1  # Move forward to find overlapping instances
+        
+        # Sort positions by start index
+        special_tokens_positions.sort(key=lambda x: x[0])
+
+        filtered_positions = []
+        last_end = -1
+        
+        for start, end, token in special_tokens_positions:
+            if start >= last_end:  # No overlap with previous token
+                filtered_positions.append((start, end, token))
+                last_end = end
+        
+        # Process the text sequentially
         pretoken_list = []
-        # Apply pretokenization to each segment
-        for segment in re.split(special_tokens_pattern, chunk):
-            if not segment:
-                continue
+        last_end = 0
+        
+        for start, end, token in filtered_positions:
+            # If there's a gap before this special token, process it normally
+            if start > last_end:
+                segment = chunk[last_end:start]
+                pretoken_list.extend(
+                    m.group(0).encode("utf-8")
+                    for m in regex_pattern.finditer(segment)
+                )
+            
+            # Add the special token as a whole
+            pretoken_list.append(token.encode("utf-8"))
+            last_end = end
+        
+        # Process any remaining text after the last special token
+        if last_end < len(chunk):
+            segment = chunk[last_end:]
             pretoken_list.extend(
-                m.group(0).encode("utf-8")      # keep bytes; no tuple wrapping here
+                m.group(0).encode("utf-8")
                 for m in regex_pattern.finditer(segment)
             )
+        
         return pretoken_list
 
 
