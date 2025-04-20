@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 import io
 import math
+import pickle
 from typing import BinaryIO, Iterator, Tuple
 import os
 import json
@@ -40,57 +41,8 @@ class Tokenizer:
         (in the same format that your BPE training code output) and (optionally) a list of special
         tokens.  
         """
-        # Load vocabulary from file
-        with open(vocab_filepath, 'r') as vocab_file:
-            vocab_dict = json.load(vocab_file)
-            # Convert string keys to integers and string values to bytes
-            vocab = {int(k): v.encode('utf-8') for k, v in vocab_dict.items()}
 
-        # Load merges from file
-        with open(merges_filepath, 'r') as merges_file:
-            merges_data = json.load(merges_file)
-            # Convert each pair from hex strings to bytes
-            merges = [(first.encode('utf-8'), second.encode('utf-8')) for first, second in merges_data]
-
-        # Create tokenizer with loaded data
-        created_tokenizer = cls(vocab=vocab, merges=merges, special_tokens=special_tokens)
-        
-        return created_tokenizer
-
-    @classmethod
-    def from_files(
-        cls,
-        vocab_filepath: str,
-        merges_filepath: str,
-        special_tokens: list[str] | None = None
-    ):
-        # --- load vocab (as before) ---
-        with open(vocab_filepath, 'r', encoding='utf-8') as vf:
-            vocab_dict = json.load(vf)
-            vocab = {int(k): v.encode('utf-8') for k, v in vocab_dict.items()}
-
-        # --- load merges ---
-        merges: list[tuple[bytes, bytes]] = []
-        if merges_filepath.lower().endswith('.json'):
-            # merges is a JSON list‑of‑pairs
-            with open(merges_filepath, 'r', encoding='utf-8') as mf:
-                merges_data = json.load(mf)
-            # assume merges_data is like [["t","h"], ["e","r"], …]
-            for first, second in merges_data:
-                merges.append((first.encode('utf-8'), second.encode('utf-8')))
-        else:
-            # merges is a plain .txt file, one "first second" per line
-            with open(merges_filepath, 'r', encoding='utf-8') as mf:
-                for line in mf:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
-                        continue
-                    # split on whitespace → two tokens
-                    first, second = line.split(None, 1)
-                    merges.append((first.encode('utf-8'), second.encode('utf-8')))
-
-        # create the tokenizer
-        return cls(vocab=vocab, merges=merges, special_tokens=special_tokens)
+        return cls(pickle.load(open(vocab_filepath, "rb")), pickle.load(open(merges_filepath, "rb")), special_tokens=special_tokens,)
 
 
     def _apply_bpe_merges(self, pretoken: bytes) -> list[bytes]:
@@ -220,9 +172,13 @@ class Tokenizer:
 
         regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
 
+        # from itertools import tee
+        # iterable, iterable_copy = tee(iterable)
+        # length = sum(1 for _ in iterable_copy)
+
         for chunk in tqdm(iterable,
                       desc="Streaming BPE-encode",
-                      total=None,          
+                      total=36990,          
                       dynamic_ncols=True):
             segments = split_re.split(chunk) if split_re else [chunk]
             for seg in segments:
@@ -344,7 +300,6 @@ class Tokenizer:
 
         # Make sure all boundaries are unique, but might be fewer than desired_num_chunks
         return sorted(set(chunk_boundaries))
-
 
     def pretokenize(self, args):
         """Process chunk, strip special tokens, and apply pretokenization."""

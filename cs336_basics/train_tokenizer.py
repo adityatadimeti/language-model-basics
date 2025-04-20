@@ -1,3 +1,4 @@
+import pickle
 from tokenizer import Tokenizer
 import json
 import time
@@ -9,7 +10,7 @@ import os
 def main():
     # Configuration variables (change these to switch datasets and modes)
     dataset = "tinystories"  # "owt" or "tinystories"
-    data_mode = "train"  # "train" or "valid"
+    data_mode = "valid"  # "train" or "valid"
     
     # Set paths based on configuration
     base_data_dir = "./data"
@@ -31,6 +32,8 @@ def main():
     output_base = f"{base_data_dir}/{dataset}"
     vocab_json = f"{output_base}_vocab.json"
     merges_txt = f"{output_base}_merges.txt"
+
+    vocab_pickle = f"{output_base}_vocab.json"
     
     T = Tokenizer(vocab = None, merges = None, special_tokens=None)
 
@@ -47,30 +50,16 @@ def main():
     vocab, merges = T.train_bpe(input_path=input_path, vocab_size=vocab_size, special_tokens=special_tokens)
     end_time = time.time()
 
+    vocab_pkl = f"{output_base}_vocab.pkl"
+    merges_pkl = f"{output_base}_merges.pkl"
+    with open(vocab_pkl, "wb+") as f:
+        pickle.dump(vocab, f)
+    with open(merges_pkl, "wb+") as f:
+        pickle.dump(merges, f)
+
     # Ensure directory exists before saving files
     os.makedirs(base_data_dir, exist_ok=True)
     
-    # Save vocabulary as JSON file
-    with open(vocab_json, "w") as f:
-        # Convert bytes to strings for JSON serialization
-        serializable_vocab = {k: v.decode('utf-8', errors='replace') if isinstance(v, bytes) else v 
-                             for k, v in vocab.items()}
-        json.dump(serializable_vocab, f, indent=2)
-    print(f"Vocabulary saved to {vocab_json}")
-    
-
-    
-    with open(merges_txt, "w", encoding="utf-8") as f:
-        for first_b, second_b in merges:
-            # decode each side (they’re bytes) back to UTF‑8 strings
-            first  = first_b.decode("utf-8", errors="replace")
-            second = second_b.decode("utf-8", errors="replace")
-            f.write(f"{first} {second}\n")
-    print(f"Merges saved to {merges_txt}")
-
-
-
-
     # Print some statistics
     print(f"Trained BPE in {end_time - start_time:.2f} seconds")
     print(f"Vocabulary size: {len(vocab)}")
@@ -90,6 +79,6 @@ def analysis(json_path):
     print(f"Token ID: {longest_id}")
 
 if __name__ == '__main__':
-    #main()
+    main()
     # To analyze a specific vocabulary file:
-    analysis("data/owt_vocab_train_copy.json")
+    #analysis("data/owt_vocab_train_copy.json")
