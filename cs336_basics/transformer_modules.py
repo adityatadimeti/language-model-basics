@@ -116,3 +116,14 @@ class SwiGLU(torch.nn.Module):
         
         return self.w2(w2_input)
 
+class RotaryPositionalEmbedding(torch.nn.Module):
+    def __init__(self, theta: float, d_k: int, max_seq_len: int, device: torch.device | None=None):
+        self.theta = theta
+        self.d_k = d_k
+        self.max_seq_len = max_seq_len
+
+        frac_value = torch.arange(1, self.d_k//2)
+
+        self.register_buffer('rope', persistent=False)
+
+    def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:

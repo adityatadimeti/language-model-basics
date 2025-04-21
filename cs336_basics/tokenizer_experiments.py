@@ -3,11 +3,17 @@ from tokenizer import Tokenizer
 import time
 import random
 import pickle
+import numpy as np
+import os
 
 # 1) Paths to your vocab & merges
 TS_VOCAB = "data/tinystories_vocab.pkl"
 TS_MERGES = "data/tinystories_merges.pkl"
 tiny_stories_path = "data/TinyStoriesV2-GPT4-train.txt"
+
+OWT_VOCAB = "data/owt_vocab.pkl"
+OWT_MERGES = "data/owt_merges.pkl"
+owt_path = "data/owt_train.txt"
 
 def bytes_per_token_and_throughput(tok, docs):
     ratios = []
@@ -46,26 +52,25 @@ def main():
     ts_docs = [doc for doc in text.split("<|endoftext|>") if doc.strip()]
     print(f"Loaded {len(ts_docs)} documents from TinyStories")
 
-    # ----- Sample-based benchmark -----
-    ts_sample = random.sample(ts_docs, 10) if len(ts_docs) > 10 else ts_docs
-    ratios, samp_bytes, samp_time, samp_tp = bytes_per_token_and_throughput(ts_tok, ts_sample)
-
-    print("\n=== Sample Benchmark (10 docs) ===")
-    print(f"Avg bytes/token: {sum(ratios)/len(ratios):.2f}")
-    print(f"Processed {len(ratios)} docs in {samp_time:.2f}s → {samp_tp:.2f} B/s")
-
     # ----- Full-file benchmark -----
     full_bytes, full_time, full_tp, ids = full_file_throughput(ts_tok, text)
     print("\n=== Full-file Benchmark ===")
     print(f"File size:       {full_bytes} bytes")
     print(f"Elapsed:         {full_time:.2f}s")
     print(f"Throughput:      {full_tp:.2f} B/s")
+
+    ids_array = np.array(ids, dtype=np.uint16)
+    print(f"Token count:     {ids_array.size}")
+    print(f"Array dtype:     {ids_array.dtype}")
+
+    # ensure output directory exists
+    out_dir = "data"
+    os.makedirs(out_dir, exist_ok=True)
+
     # Save tokenized ids to pickle file
-    output_path = "data/tinystories_tokenized_ids.pkl"
-    print(f"Saving tokenized ids to {output_path}")
-    with open(output_path, "wb") as f:
-        pickle.dump(ids, f)
-    print(f"Successfully saved {len(ids)} tokens")
+    output_path = os.path.join(out_dir, "tinystories_tokenized_ids.npy")
+    np.save(output_path, ids_array)
+    print(f"Successfully saved token IDs to {output_path}")
 
 if __name__ == "__main__":
     main()
