@@ -9,7 +9,7 @@ import numpy.typing as npt
 import torch
 from torch import Tensor
 
-from cs336_basics.transformer_modules import Linear, Embedding, RMSNorm, SwiGLU, Rope
+from cs336_basics.transformer_modules import Linear, Embedding, RMSNorm, SwiGLU, RotaryPositionalEmbedding
 from cs336_basics.tokenizer import Tokenizer
 
 from torch import nn

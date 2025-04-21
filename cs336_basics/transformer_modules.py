@@ -124,6 +124,7 @@ class RotaryPositionalEmbedding(torch.nn.Module):
 
         frac_value = torch.arange(1, self.d_k//2)
 
+
         self.register_buffer('rope', persistent=False)
 
-    def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:
+    #def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:

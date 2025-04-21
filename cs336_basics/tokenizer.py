@@ -191,42 +191,68 @@ class Tokenizer:
                     raise ValueError(f"Token {tok!r} not found in vocabulary")
 
         return final_ids
+
     
+    def encode_iterable(
+            self,
+            iterable: Iterable[str],
+            chunk_size_bytes: int = 1024 * 1024 * 1024
+        ) -> Iterator[int]:
+            """
+            Stream a file‑like iterable in fixed byte‑sized chunks,
+            decode & call self.encode() on each chunk.
+            Falls back to line buffering if .read isn’t available.
+            """
+            # If this is a seekable file object, do fast chunked read:
+            if hasattr(iterable, "read") and hasattr(iterable, "seek") and hasattr(iterable, "tell"):
+                # figure out how many chunks we’ll do
+                iterable.seek(0, os.SEEK_END)
+                total_bytes = iterable.tell()
+                iterable.seek(0)
+                total_chunks = max(1, math.ceil(total_bytes / chunk_size_bytes))
 
-    def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
-        """
-        Lazily tokenize lines without loading the entire text into memory.
-        """
-        if self.special_tokens:
-            sorted_tokens = sorted(self.special_tokens, key=len, reverse=True)
-            split_re = re.compile(f"({'|'.join(re.escape(tok) for tok in sorted_tokens)})")
-        else:
-            split_re = None
+                pbar = tqdm(total=total_chunks,
+                            desc="Chunked encode",
+                            dynamic_ncols=True)
+                while True:
+                    data = iterable.read(chunk_size_bytes)
+                    if not data:
+                        break
+                    # If file opened in binary mode, data is bytes
+                    if isinstance(data, (bytes, bytearray)):
+                        text = data.decode("utf-8", errors="ignore")
+                    else:
+                        text = data
+                    yield from self.encode(text)
+                    pbar.update(1)
+                pbar.close()
+                return
 
-        regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
+            buffer_lines: list[str] = []
+            buffer_bytes = 0
+            total_chunks = None
+            if hasattr(iterable, "seek") and hasattr(iterable, "tell"):
+                iterable.seek(0, os.SEEK_END)
+                size = iterable.tell()
+                iterable.seek(0)
+                total_chunks = math.ceil(size / chunk_size_bytes)
 
-        from itertools import tee
-        iterable, iterable_copy = tee(iterable)
-        length = sum(1 for _ in iterable_copy)
-
-        for chunk in tqdm(iterable,
-                      desc="Streaming BPE-encode",
-                      total=36990,          
-                      dynamic_ncols=True):
-            segments = split_re.split(chunk) if split_re else [chunk]
-            for seg in segments:
-                if not seg:
-                    continue
-                if seg in self.special_tokens:
-                    yield self.inv_vocab[seg.encode("utf-8")]
-                    continue
-                for m in regex_pattern.finditer(seg):
-                    pre = m.group(0).encode("utf-8")
-                    for merged in self._apply_bpe_merges(pre):
-                        try:
-                            yield self.inv_vocab[merged]
-                        except KeyError:
-                            raise ValueError(f"Token {merged!r} not in vocabulary")
+            pbar = tqdm(total=total_chunks,
+                        desc="Buffered encode",
+                        dynamic_ncols=True)
+            for line in iterable:
+                buffer_lines.append(line)
+                buffer_bytes += len(line.encode("utf-8"))
+                if buffer_bytes >= chunk_size_bytes:
+                    text = "".join(buffer_lines)
+                    yield from self.encode(text)
+                    buffer_lines.clear()
+                    buffer_bytes = 0
+                    pbar.update(1)
+            if buffer_lines:
+                yield from self.encode("".join(buffer_lines))
+                pbar.update(1)
+            pbar.close()
 
     
     def decode(self, ids: list[int]) -> str:
