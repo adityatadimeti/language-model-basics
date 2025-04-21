@@ -25,6 +25,7 @@ class Tokenizer:
         self.inv_vocab = {} # pretoken bytes to id
         self.special_tokens = []
         self.token_ID = 0  # token ID that increments with each new token that's been added
+        self._merge_map = {}
 
         if vocab:
             self.vocabulary = vocab  # Mapping from token ID to bytestring token
@@ -33,6 +34,10 @@ class Tokenizer:
             self.special_tokens = special_tokens
         if merges:
             self.merges = merges
+            # in __init__ after self.merges = merges
+            self._merge_ranks = { pair: i for i, pair in enumerate(self.merges) }
+
+            self._merge_map = { (f, s): f + s for f, s in self.merges }
     
     @classmethod
     def from_files(cls, vocab_filepath: str, merges_filepath: str, special_tokens: list[str] | None = None):
@@ -61,20 +66,48 @@ class Tokenizer:
         """
         # Start as list of 1‑byte tokens
 
-        tokens = [bytes([b]) for b in pretoken]
+        # tokens = [bytes([b]) for b in pretoken]
 
-        for first, second in self.merges:          # each is bytes
-            i = 0
-            # scan left‑to‑right, merging in place
-            while i < len(tokens) - 1:
-                if tokens[i] == first and tokens[i + 1] == second:
-                    tokens[i : i + 2] = [first + second]   # replace pair
-                    # stay at same index so we can catch cascaded merges
-                    if i:                                  # move back one step
-                        i -= 1
-                else:
-                    i += 1
+        # for first, second in self.merges:          # each is bytes
+        #     i = 0
+        #     # scan left‑to‑right, merging in place
+        #     while i < len(tokens) - 1:
+        #         if tokens[i] == first and tokens[i + 1] == second:
+        #             tokens[i : i + 2] = [first + second]   # replace pair
+        #             # stay at same index so we can catch cascaded merges
+        #             if i:                                  # move back one step
+        #                 i -= 1
+        #         else:
+        #             i += 1
+        # return tokens
+
+        # initialize as list of single‐byte tokens
+
+        # start as list of single‐byte tokens
+        tokens = [bytes([b]) for b in pretoken]
+        rank = self._merge_ranks
+
+        # keep merging until no more valid pairs
+        while True:
+            best_i = None
+            best_rank = None
+
+            # scan for adjacent pairs
+            for i in range(len(tokens) - 1):
+                pair = (tokens[i], tokens[i+1])
+                r = rank.get(pair)
+                if r is not None and (best_rank is None or r < best_rank):
+                    best_rank, best_i = r, i
+
+            # if we found a pair to merge, do it
+            if best_i is not None:
+                tokens[best_i:best_i+2] = [tokens[best_i] + tokens[best_i+1]]
+                # then loop again
+            else:
+                break
+
         return tokens
+
 
 
 
@@ -172,9 +205,9 @@ class Tokenizer:
 
         regex_pattern = re.compile(r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""")
 
-        # from itertools import tee
-        # iterable, iterable_copy = tee(iterable)
-        # length = sum(1 for _ in iterable_copy)
+        from itertools import tee
+        iterable, iterable_copy = tee(iterable)
+        length = sum(1 for _ in iterable_copy)
 
         for chunk in tqdm(iterable,
                       desc="Streaming BPE-encode",

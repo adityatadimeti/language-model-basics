@@ -9,8 +9,8 @@ import os
 
 def main():
     # Configuration variables (change these to switch datasets and modes)
-    dataset = "tinystories"  # "owt" or "tinystories"
-    data_mode = "valid"  # "train" or "valid"
+    dataset = "owt"  # "owt" or "tinystories"
+    data_mode = "train"  # "train" or "valid"
     
     # Set paths based on configuration
     base_data_dir = "./data"
@@ -30,11 +30,9 @@ def main():
     
     # Output file paths
     output_base = f"{base_data_dir}/{dataset}"
-    vocab_json = f"{output_base}_vocab.json"
-    merges_txt = f"{output_base}_merges.txt"
+    vocab_pkl = f"{output_base}_vocab.pkl"
+    merges_pkl = f"{output_base}_merges.pkl"
 
-    vocab_pickle = f"{output_base}_vocab.json"
-    
     T = Tokenizer(vocab = None, merges = None, special_tokens=None)
 
     special_tokens = ["<|endoftext|>"]
@@ -50,8 +48,6 @@ def main():
     vocab, merges = T.train_bpe(input_path=input_path, vocab_size=vocab_size, special_tokens=special_tokens)
     end_time = time.time()
 
-    vocab_pkl = f"{output_base}_vocab.pkl"
-    merges_pkl = f"{output_base}_merges.pkl"
     with open(vocab_pkl, "wb+") as f:
         pickle.dump(vocab, f)
     with open(merges_pkl, "wb+") as f:
