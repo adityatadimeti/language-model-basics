@@ -9,7 +9,13 @@ import numpy.typing as npt
 import torch
 from torch import Tensor
 
-from cs336_basics.transformer_modules import Linear, Embedding, RMSNorm, SwiGLU, RotaryPositionalEmbedding, softmax
+from cs336_basics.transformer_modules import (Linear, 
+                                              Embedding, 
+                                              RMSNorm, 
+                                              SwiGLU, 
+                                              RotaryPositionalEmbedding, 
+                                              CausalMultiHeadAttention,
+                                              softmax, scaled_dot_product_attention)
 from cs336_basics.tokenizer import Tokenizer
 
 from torch import nn
@@ -117,7 +123,7 @@ def run_scaled_dot_product_attention(
     Returns:
         Float[Tensor, " ... queries d_v"]: Output of SDPA
     """
-    raise NotImplementedError
+    return scaled_dot_product_attention(Q=Q, K=K, V=V, mask=mask)
 
 
 def run_multihead_self_attention(
@@ -151,7 +157,10 @@ def run_multihead_self_attention(
         Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    raise NotImplementedError
+    MHA = CausalMultiHeadAttention(d_model=d_model, num_heads=num_heads, q_proj=q_proj_weight, 
+                                   k_proj=k_proj_weight, v_proj=v_proj_weight, o_proj=o_proj_weight)
+    
+    return MHA(in_features)
 
 
 def run_multihead_self_attention_with_rope(
@@ -191,7 +200,11 @@ def run_multihead_self_attention_with_rope(
         Float[Tensor, " ... sequence_length d_out"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    raise NotImplementedError
+    MHA = CausalMultiHeadAttention(d_model=d_model, num_heads=num_heads, q_proj=q_proj_weight, 
+                                   k_proj=k_proj_weight, v_proj=v_proj_weight, o_proj=o_proj_weight, 
+                                   theta=theta, token_positions=token_positions, max_seq_len=max_seq_len)
+    
+    return MHA(in_features)
 
 
 def run_rope(

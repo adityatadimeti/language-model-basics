@@ -166,7 +166,79 @@ def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
     normalized_x = x - max_val
     return torch.exp(normalized_x) / torch.sum(torch.exp(normalized_x), dim=i, keepdim=True)
 
+def scaled_dot_product_attention(Q: torch.Tensor, K: torch.Tensor, V: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
+    """
+    mask is an optional boolean mask of shape (seq_len, seq_len)
+    """
+    d_k = Q.shape[-1]
+    q_k = einsum(Q, K, "batch_size ... n d_k, batch_size ... m d_k -> batch_size ... n m") / math.sqrt(d_k)
+    if mask is not None:
+        q_k = softmax(torch.where(mask, q_k, float('-inf')), -1)
+    q_k_v = einsum(q_k, V, "batch_size ... n m, batch_size ... m d_v -> batch_size ... n d_v")
+    return q_k_v
 
 
 
 
+class CausalMultiHeadAttention(torch.nn.Module):
+    def __init__(self, d_model: int, num_heads: int, q_proj: torch.Tensor, k_proj: torch.Tensor, v_proj: torch.Tensor,
+                 o_proj: torch.Tensor, theta: float | None =  None,token_positions: torch.Tensor | None = None, max_seq_len: int | None = None):
+        super().__init__()
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.q_proj = nn.Parameter(q_proj)
+        self.k_proj = nn.Parameter(k_proj)
+        self.v_proj = nn.Parameter(v_proj)
+        self.o_proj = nn.Parameter(o_proj)
+        
+        """
+        Optional RoPE parameters
+        """
+        self.theta = theta
+        self.token_positions = token_positions
+
+        if token_positions is not None:
+            """
+            Applying RoPE
+            """
+
+            d_k = self.d_model // self.num_heads
+            self.rope = RotaryPositionalEmbedding(theta=self.theta, d_k=d_k, max_seq_len=max_seq_len)
+
+    def forward(self, in_features: torch.Tensor) -> torch.Tensor:
+        sequence_length = in_features.shape[-2]
+        
+        Q = einsum(self.q_proj, in_features, "d_k d_in, ... sequence_length d_in -> ... sequence_length d_k")
+        K = einsum(self.k_proj, in_features, "d_k d_in, ... sequence_length d_in -> ... sequence_length d_k")
+        V = einsum(self.v_proj, in_features, "d_v d_in, ... sequence_length d_in -> ... sequence_length d_v")
+
+        # now split across heads?
+
+        Q_i = rearrange(Q, "... sequence_length (h head_dim) -> ... h sequence_length head_dim", h = self.num_heads)
+        K_i = rearrange(K, "... sequence_length (h head_dim) -> ... h sequence_length head_dim", h = self.num_heads)
+        V_i = rearrange(V, "... sequence_length (h head_dim) -> ... h sequence_length head_dim", h = self.num_heads)
+
+        mask = ~torch.triu(torch.ones(sequence_length, sequence_length, dtype=torch.bool), diagonal=1)
+        
+        # seq_len, seq_len
+        mask = rearrange(mask, 'i j -> 1 1 i j').to(in_features.device)
+
+
+        if self.token_positions is not None:
+            """
+            Have to apply RoPE here if provided token positions
+            """
+            
+
+            Q_i = self.rope(Q_i, self.token_positions)
+            K_i = self.rope(K_i, self.token_positions)
+        
+
+        q_k_v = scaled_dot_product_attention(Q_i, K_i, V_i, mask=mask)
+        q_k_v = rearrange(q_k_v, "... h sequence_length head_dim -> ... sequence_length (h head_dim)", h = self.num_heads)
+
+        mha = einsum(self.o_proj, q_k_v, "d_model hd_v, ... hd_v -> ... d_model")
+
+        return mha
+
+        
