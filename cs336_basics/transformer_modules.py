@@ -26,7 +26,6 @@ class Linear(torch.nn.Module):
     def initialize_weights(self, weights, mean: float, std: float, trunc_low: float | None = None, trunc_high: float | None = None ):
         trunc_normal_(tensor=weights, mean=mean, std = std, a = trunc_low, b = trunc_high)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return einsum(self.weights, x, 'd_out d_in, ... d_in -> ... d_out')
 
 
@@ -118,13 +117,43 @@ class SwiGLU(torch.nn.Module):
 
 class RotaryPositionalEmbedding(torch.nn.Module):
     def __init__(self, theta: float, d_k: int, max_seq_len: int, device: torch.device | None=None):
+        super().__init__()
         self.theta = theta
         self.d_k = d_k
         self.max_seq_len = max_seq_len
 
-        frac_value = torch.arange(1, self.d_k//2)
+        positions = torch.arange(0, max_seq_len) 
+        frac_value = torch.arange(0, self.d_k//2) 
+        inv_freq = 1.0 / (torch.pow(theta, 2 * frac_value / d_k))
+
+        angle = einsum(positions, inv_freq, "i, j -> i j")
+        
+        
+        cos_tensor = torch.cos(angle)
+        sin_tensor = torch.sin(angle)
 
 
-        self.register_buffer('rope', persistent=False)
+        self.register_buffer('sin', sin_tensor, persistent=False)
+        self.register_buffer('cos', cos_tensor, persistent=False)
 
-    #def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, token_positions: torch.Tensor) -> torch.Tensor:
+        x_evens = x[..., ::2]
+        x_odds  = x[...,  1::2]
+
+        cos = self.cos[token_positions]
+        sin = self.sin[token_positions]
+
+
+        if cos.ndim == 2:
+            cos = cos.unsqueeze(0)
+            sin = sin.unsqueeze(0)
+
+        x_rotated_even = x_evens * cos - x_odds * sin
+        x_rotated_odd  = x_evens * sin + x_odds * cos
+
+        x_rot = torch.stack([x_rotated_even, x_rotated_odd], dim=-1)  # (..., seq, d//2, 2)
+        x_rot = rearrange(x_rot, "... s d p -> ... s (d p)")           # (..., seq, d)
+
+        return x_rot
+
+
