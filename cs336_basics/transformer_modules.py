@@ -156,4 +156,17 @@ class RotaryPositionalEmbedding(torch.nn.Module):
 
         return x_rot
 
+def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
+    """
+    x is the tensor to apply softmax to
+    We apply softmax to the i-th dimension of the input tensor.
+    """
+
+    max_val = x.max(dim=i, keepdim=True).values
+    normalized_x = x - max_val
+    return torch.exp(normalized_x) / torch.sum(torch.exp(normalized_x), dim=i, keepdim=True)
+
+
+
+
 
