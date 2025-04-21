@@ -15,7 +15,9 @@ from cs336_basics.transformer_modules import (Linear,
                                               SwiGLU, 
                                               RotaryPositionalEmbedding, 
                                               CausalMultiHeadAttention,
-                                              softmax, scaled_dot_product_attention)
+                                              TransformerBlock,
+                                              TransformerLM,
+                                              silu, softmax, scaled_dot_product_attention)
 from cs336_basics.tokenizer import Tokenizer
 
 from torch import nn
@@ -301,7 +303,11 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features while using RoPE.
     """
-    raise NotImplementedError
+    TB = TransformerBlock(d_model=d_model, num_heads=num_heads, d_ff=d_ff, max_seq_len=max_seq_len,
+                          theta=theta, weights=weights)
+    
+    return TB(in_features)
+    
 
 
 def run_transformer_lm(
@@ -383,7 +389,20 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    lm = TransformerLM(
+        d_model=d_model,
+        num_heads=num_heads,
+        d_ff=d_ff,
+        weights=weights,
+        vocab_size=vocab_size,
+        context_length=context_length,
+        num_layers=num_layers,
+        theta=rope_theta,
+        max_seq_len=context_length
+    ).to(in_indices.device)
+
+    # 2) forward‑pass
+    return lm(in_indices)
 
 
 def run_rmsnorm(
@@ -422,7 +441,8 @@ def run_silu(in_features: Float[Tensor, " ..."]) -> Float[Tensor, " ..."]:
         Float[Tensor,"..."]: of with the same shape as `in_features` with the output of applying
         SiLU to each element.
     """
-    raise NotImplementedError
+
+    return silu(in_features)
 
 
 def run_get_batch(

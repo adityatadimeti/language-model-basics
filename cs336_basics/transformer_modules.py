@@ -26,7 +26,8 @@ class Linear(torch.nn.Module):
     def initialize_weights(self, weights, mean: float, std: float, trunc_low: float | None = None, trunc_high: float | None = None ):
         trunc_normal_(tensor=weights, mean=mean, std = std, a = trunc_low, b = trunc_high)
 
-        return einsum(self.weights, x, 'd_out d_in, ... d_in -> ... d_out')
+    def forward(self, in_features: torch.Tensor) -> torch.Tensor:
+        return einsum(self.weights, in_features, 'd_out d_in, ... d_in -> ... d_out')
 
 
 class Embedding(nn.Module):
@@ -103,13 +104,10 @@ class SwiGLU(torch.nn.Module):
         self.w2 = Linear(in_features=self.d_ff, out_features=self.d_model, device=device, dtype=dtype)
         self.w3 = Linear(in_features=self.d_model, out_features=self.d_ff, device=device, dtype=dtype)
     
-    def silu(self, x: torch.Tensor) -> torch.Tensor:
-        x_sig = torch.sigmoid(x)
-        return x_sig * x
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
 
-        silu_tensor = self.silu(einsum(self.w1.weights, x, "d_ff d_model, ... d_model -> ... d_ff"))
+        silu_tensor = silu(einsum(self.w1.weights, x, "d_ff d_model, ... d_model -> ... d_ff"))
         w3_x = einsum(self.w3.weights, x, "d_ff d_model, ... d_model -> ... d_ff")
         w2_input = einsum(silu_tensor, w3_x, "... d_ff, ... d_ff -> ... d_ff")
         
@@ -156,6 +154,10 @@ class RotaryPositionalEmbedding(torch.nn.Module):
 
         return x_rot
 
+def silu(x: torch.Tensor) -> torch.Tensor:
+    x_sig = torch.sigmoid(x)
+    return x_sig * x
+    
 def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
     """
     x is the tensor to apply softmax to
@@ -190,6 +192,8 @@ class CausalMultiHeadAttention(torch.nn.Module):
         self.k_proj = nn.Parameter(k_proj)
         self.v_proj = nn.Parameter(v_proj)
         self.o_proj = nn.Parameter(o_proj)
+
+        self.d_k = self.d_v = self.d_model // self.num_heads
         
         """
         Optional RoPE parameters
@@ -197,15 +201,18 @@ class CausalMultiHeadAttention(torch.nn.Module):
         self.theta = theta
         self.token_positions = token_positions
 
-        if token_positions is not None:
+        if theta is not None and max_seq_len is not None:
             """
             Applying RoPE
             """
 
-            d_k = self.d_model // self.num_heads
-            self.rope = RotaryPositionalEmbedding(theta=self.theta, d_k=d_k, max_seq_len=max_seq_len)
+            self.rope = RotaryPositionalEmbedding(theta=self.theta, d_k=self.d_k, max_seq_len=max_seq_len)
+        else:
+            self.rope = None
 
     def forward(self, in_features: torch.Tensor) -> torch.Tensor:
+        
+
         sequence_length = in_features.shape[-2]
         
         Q = einsum(self.q_proj, in_features, "d_k d_in, ... sequence_length d_in -> ... sequence_length d_k")
@@ -224,11 +231,13 @@ class CausalMultiHeadAttention(torch.nn.Module):
         mask = rearrange(mask, 'i j -> 1 1 i j').to(in_features.device)
 
 
-        if self.token_positions is not None:
+        if self.rope is not None:
             """
-            Have to apply RoPE here if provided token positions
+            Have to apply RoPE here  
             """
             
+            if self.token_positions is None:
+                self.token_positions = torch.arange(sequence_length, device=in_features.device)
 
             Q_i = self.rope(Q_i, self.token_positions)
             K_i = self.rope(K_i, self.token_positions)
@@ -241,4 +250,117 @@ class CausalMultiHeadAttention(torch.nn.Module):
 
         return mha
 
+
+class TransformerBlock(torch.nn.Module):
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, 
+                      weights: dict[str, torch.Tensor], theta: float | None = None,
+                      token_positions: torch.Tensor | None = None, max_seq_len: int | None = None):
+        super().__init__()
+
+        self.rms1 = RMSNorm(d_model=d_model)
+        if "ln1.weight" in weights:
+            self.rms1.weights = nn.Parameter(weights["ln1.weight"])
+
+        q_w = weights["attn.q_proj.weight"] if "attn.q_proj.weight" in weights else None
+        k_w = weights["attn.k_proj.weight"] if "attn.k_proj.weight" in weights else None
+        v_w = weights["attn.v_proj.weight"] if "attn.v_proj.weight" in weights else None
+        o_w = weights["attn.output_proj.weight"] if "attn.output_proj.weight" in weights else None
+
+
         
+        self.mha = CausalMultiHeadAttention(d_model=d_model, num_heads=num_heads, q_proj=q_w,
+                                   k_proj=k_w, v_proj=v_w, o_proj=o_w, theta=theta, token_positions=token_positions, 
+                                   max_seq_len=max_seq_len)
+        
+        self.rms2 = RMSNorm(d_model=d_model)
+        if "ln2.weight" in weights:
+            self.rms2.weights = nn.Parameter(weights["ln2.weight"])
+
+        self.ffn = SwiGLU(d_model=d_model, d_ff=d_ff)
+        if "ffn.w1.weight" in weights:
+            self.ffn.w1.weights = nn.Parameter(weights["ffn.w1.weight"])
+        if "ffn.w2.weight" in weights:
+            self.ffn.w2.weights = nn.Parameter(weights["ffn.w2.weight"])
+        if "ffn.w3.weight" in weights:
+            self.ffn.w3.weights = nn.Parameter(weights["ffn.w3.weight"])
+
+
+        
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Pre‑norm, attention + residual
+        res = x
+        x = self.rms1(x)
+        x = self.mha(x) + res
+
+        # Pre‑norm, ffn + residual
+        res = x
+        x = self.rms2(x)
+        x = self.ffn(x) + res
+        return x
+
+class TransformerLM(torch.nn.Module):
+    def __init__(self, 
+                 d_model: int, 
+                 num_heads: int, d_ff: int, 
+                 weights: dict[str, torch.Tensor], 
+                 vocab_size: int, 
+                 context_length: int, 
+                 num_layers: int,
+                 theta: float | None = None,
+                 token_positions: torch.Tensor | None = None, 
+                 max_seq_len: int | None = None):
+        
+        super().__init__()
+
+        self.vocab_size = vocab_size
+        self.context_length = context_length
+        self.num_layers = num_layers
+
+        self.embedding = Embedding(num_embeddings=vocab_size, embedding_dim=d_model)
+        if "token_embeddings.weight" in weights:
+            self.embedding.weights = nn.Parameter(weights["token_embeddings.weight"])
+
+        self.transformer_blocks = nn.ModuleList()
+        for i in range(num_layers):
+            prefix = f"layers.{i}."
+            # gather only the keys that exist for this layer
+            block_w = {
+                name[len(prefix):]: param
+                for name, param in weights.items()
+                if name.startswith(prefix)
+            }
+            self.transformer_blocks.append(
+                TransformerBlock(
+                    d_model=d_model,
+                    num_heads=num_heads,
+                    d_ff=d_ff,
+                    weights=block_w,
+                    theta=theta,
+                    max_seq_len=max_seq_len,
+                )
+            )
+
+        self.norm = RMSNorm(d_model=d_model)
+        if "ln_final.weight" in weights:
+            self.norm.weights = nn.Parameter(weights["ln_final.weight"])
+        self.lm_head = Linear(d_model, vocab_size)
+        if "lm_head.weight" in weights:
+            self.lm_head.weights = nn.Parameter(weights["lm_head.weight"])
+
+        
+    def forward(self, in_indices: torch.Tensor) -> torch.Tensor:
+        #token_positions = torch.arange(in_indices.shape[1], dtype=torch.long, device=in_indices.device)
+
+        x = self.embedding(token_ids = in_indices)
+        
+        for block in self.transformer_blocks:
+            x = block(x)
+        
+        x = self.norm(x)
+
+        logits = self.lm_head(x)
+
+        return logits
+
+
