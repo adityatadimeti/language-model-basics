@@ -97,6 +97,7 @@ def train_lm(cfg):
     val_interval      = int(cfg.get('val_interval', 500))
     save_interval     = int(cfg.get('save_interval', 1000))
     theta             = int(cfg.get('theta', 0))
+    gradient_accum    = int(cfg.get('gradient_accumulation_steps', 1))
     device = "cuda" if torch.cuda.is_available() else 'cpu'
 
     print(f"Training on device: {device}")
@@ -159,6 +160,8 @@ def train_lm(cfg):
     it = start_iter
     start_time = time.time()
 
+    optimizer.zero_grad()
+
     # Training loop
     with tqdm(total=max_iters) as pbar:
         while it < max_iters:
@@ -174,11 +177,18 @@ def train_lm(cfg):
 
             # Loss and update
             loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
-            optimizer.zero_grad()
+            loss = loss / gradient_accum
             loss.backward()
-            if max_grad_norm > 0:
-                gradient_clipping(model.parameters(), max_grad_norm)
-            optimizer.step()
+
+
+            # only step & clip once every `accum_steps` minibatches
+            if (it + 1) % gradient_accum == 0:
+                if max_grad_norm > 0:
+                    gradient_clipping(model.parameters(), max_grad_norm)
+                optimizer.step()
+                optimizer.zero_grad()
+
+            
             it += 1
             pbar.update(1)
 

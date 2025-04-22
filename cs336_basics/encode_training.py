@@ -5,8 +5,10 @@ import numpy as np
 from tokenizer import Tokenizer
 
 BASE_DIR = "./data"
-DATASETS = ["owt", "tinystories"]
-SPLITS   = ["train", "valid"]
+#DATASETS = ["owt", "tinystories"]
+DATASETS = ["owt"]
+# SPLITS   = ["train", "valid"]
+SPLITS = ["valid"]
 SPECIAL_TOKENS = ["<|endoftext|>"]
 
 def main():
@@ -14,8 +16,8 @@ def main():
 
     for ds in DATASETS:
         # paths to your saved vocab and merges
-        vocab_path  = os.path.join(BASE_DIR, f"{ds}_vocab.json")
-        merges_path = os.path.join(BASE_DIR, f"{ds}_merges.txt")
+        vocab_path  = os.path.join(BASE_DIR, f"{ds}_vocab.pkl")
+        merges_path = os.path.join(BASE_DIR, f"{ds}_merges.pkl")
 
         # load tokenizer
         tok = Tokenizer.from_files(vocab_path, merges_path, special_tokens=SPECIAL_TOKENS)
