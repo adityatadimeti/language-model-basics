@@ -167,4 +167,5 @@ data/
 sliced_files/
 
 model_checkpoints/
-model_configs/
+
+wandb/
