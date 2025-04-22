@@ -52,38 +52,54 @@ def train_lm(cfg):
         resume=cfg.get('resume_id', None)
     )
 
+
+    # Hyperparameters
+    vocab_size        = int(cfg['vocab_size'])
+    context_length    = int(cfg.get('context_length', 128))
+    d_model           = int(cfg.get('d_model', 512))
+    d_ff              = int(cfg.get('d_ff', 2048))
+    num_heads         = int(cfg.get('num_heads', 8))
+    num_layers        = int(cfg.get('num_layers', 6))
+    batch_size        = int(cfg.get('batch_size', 32))
+    max_iters         = int(cfg.get('max_iters', 10000))
+    max_lr            = float(cfg.get('max_lr', 1e-3))
+    min_lr            = float(cfg.get('min_lr', 1e-5))
+    warmup_iters      = int(cfg.get('warmup_iters', 500))
+    cosine_cycle_iters= int(cfg.get('cosine_cycle_iters', 8000))
+    weight_decay      = float(cfg.get('weight_decay', 1e-2))
+    beta1             = float(cfg.get('beta1', 0.9))
+    beta2             = float(cfg.get('beta2', 0.999))
+    eps               = float(cfg.get('eps', 1e-8))
+    max_grad_norm     = float(cfg.get('max_grad_norm', 1.0))
+    optimizer_type    = str(cfg.get('optimizer', 'adamw')).lower()
+    log_interval      = int(cfg.get('log_interval', 100))
+    val_interval      = int(cfg.get('val_interval', 500))
+    save_interval     = int(cfg.get('save_interval', 1000))
+    device_str        = str(cfg.get('device', 'cuda'))
+    theta             = int(cfg.get('theta', 0))
+    device = torch.device(device_str if torch.cuda.is_available() else 'cpu')
+
     # Data & checkpoint
-    train_data      = np.load(cfg['train_data'], mmap_mode='r').astype(np.int64)
-    val_data        = np.load(cfg['val_data'],   mmap_mode='r').astype(np.int64)
+    # train_data      = np.load(cfg['train_data'], mmap_mode='r').astype(np.int64)
+    # val_data        = np.load(cfg['val_data'],   mmap_mode='r').astype(np.int64)
+
+    full_train = np.load(cfg['train_data'], mmap_mode='r')
+    full_val   = np.load(cfg['val_data'],   mmap_mode='r')
+    if 'max_data_tokens' in cfg:
+        N = int(cfg['max_data_tokens'])
+        # +1 so we can form a context→target pair
+        full_train = full_train[: N + context_length + 1]
+        full_val   = full_val[:   N + context_length + 1]
+    train_data = full_train.astype(np.int64)
+    val_data   = full_val.astype(np.int64)
+
+
+
+
     checkpoint_path = cfg['checkpoint_path']
     resume          = cfg.get('resume', None)
     os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
 
-    # Hyperparameters
-    vocab_size        = cfg['vocab_size']
-    context_length    = cfg.get('context_length', 128)
-    d_model           = cfg.get('d_model', 512)
-    d_ff              = cfg.get('d_ff', 2048)
-    num_heads         = cfg.get('num_heads', 8)
-    num_layers        = cfg.get('num_layers', 6)
-    batch_size        = cfg.get('batch_size', 32)
-    max_iters         = cfg.get('max_iters', 10000)
-    max_lr            = cfg.get('max_lr', 1e-3)
-    min_lr            = cfg.get('min_lr', 1e-5)
-    warmup_iters      = cfg.get('warmup_iters', 500)
-    cosine_cycle_iters= cfg.get('cosine_cycle_iters', 8000)
-    weight_decay      = cfg.get('weight_decay', 1e-2)
-    beta1             = cfg.get('beta1', 0.9)
-    beta2             = cfg.get('beta2', 0.999)
-    eps               = float(cfg.get('eps', 1e-8))
-    max_grad_norm     = cfg.get('max_grad_norm', 1.0)
-    optimizer_type    = cfg.get('optimizer', 'adamw')
-    log_interval      = cfg.get('log_interval', 100)
-    val_interval      = cfg.get('val_interval', 500)
-    save_interval     = cfg.get('save_interval', 1000)
-    device_str        = cfg.get('device', 'cuda')
-
-    device = torch.device(device_str if torch.cuda.is_available() else 'cpu')
 
     # Model
     model = TransformerLM(
@@ -94,7 +110,7 @@ def train_lm(cfg):
         vocab_size=vocab_size,
         context_length=context_length,
         num_layers=num_layers,
-        theta=None,
+        theta=theta if theta else None,
         token_positions=None,
         max_seq_len=context_length
     ).to(device)
@@ -121,6 +137,7 @@ def train_lm(cfg):
 
     # Training loop
     while it < max_iters:
+
         xb, yb = load_data(train_data, batch_size, context_length, device)
         logits = model(xb)
         B, T, V = logits.shape
@@ -134,7 +151,8 @@ def train_lm(cfg):
         loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
         optimizer.zero_grad()
         loss.backward()
-        gradient_clipping(model.parameters(), max_grad_norm)
+        if max_grad_norm > 0:
+            gradient_clipping(model.parameters(), max_grad_norm)
         optimizer.step()
         it += 1
 
