@@ -363,4 +363,17 @@ class TransformerLM(torch.nn.Module):
 
         return logits
 
+def cross_entropy(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    
+    logits = logits - torch.max(logits, dim=1, keepdim=True)[0]       
 
+    log_sum_exp= torch.log(torch.sum(torch.exp(logits), dim=1))                            
+
+    true_logit = torch.gather(logits, dim=1, index=targets.unsqueeze(1)).squeeze(1)                      
+    nll = log_sum_exp - true_logit                       
+    return nll.mean()
+
+def perplexity(logits: torch.Tensor,    # [batch_size, seq_len, vocab_size]
+    targets: torch.Tensor     # [batch_size, seq_len]
+) -> torch.Tensor:
+    return torch.exp(cross_entropy(logits, targets))
