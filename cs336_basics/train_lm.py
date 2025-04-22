@@ -137,6 +137,8 @@ def train_lm(cfg):
         max_seq_len=context_length
     ).to(device)
 
+    model = torch.compile(model)
+
     # Optimizer
     if optimizer_type.lower() == 'sgd':
         optimizer = SGD(model.parameters(), lr=max_lr)
