@@ -17,6 +17,20 @@ from cs336_basics.optimizer import (
     AdamW,
 )
 
+def get_cluster_data_path(path: str) -> str:
+    """
+    Prepends '/data/$USER/' to `path` if on GPU cluster.
+    Otherwise, returns path unchanged.
+    """
+    if torch.cuda.is_available() and os.path.exists("/data"):
+        user = os.environ.get("USER", "unknown")
+        cluster_prefix = f"/data/{user}"
+        # Only prepend if not already there
+        if not path.startswith(cluster_prefix):
+            return os.path.join(cluster_prefix, path.lstrip("/"))
+    return path
+
+
 
 def evaluate(
     model: torch.nn.Module,
@@ -83,8 +97,11 @@ def train_lm(cfg):
     # train_data      = np.load(cfg['train_data'], mmap_mode='r').astype(np.int64)
     # val_data        = np.load(cfg['val_data'],   mmap_mode='r').astype(np.int64)
 
-    full_train = np.load(cfg['train_data'], mmap_mode='r')
-    full_val   = np.load(cfg['val_data'],   mmap_mode='r')
+    train_data_path = get_cluster_data_path(cfg['train_data'])
+    val_data_path   = get_cluster_data_path(cfg['val_data'])
+    full_train = np.load(train_data_path, mmap_mode='r')
+    full_val   = np.load(val_data_path,   mmap_mode='r')
+
     if 'max_data_tokens' in cfg:
         N = int(cfg['max_data_tokens'])
         # +1 so we can form a context→target pair
@@ -228,8 +245,15 @@ if __name__ == '__main__':
     if len(sys.argv) >= 4 and sys.argv[1] in ('train','decode') and sys.argv[2]=='--config':
         mode = sys.argv[1]
         cfg_path = sys.argv[3]
-        with open(f"model_configs/{cfg_path}") as f:
+        config_file_path = get_cluster_data_path(f"model_configs/{cfg_path}")
+        with open(config_file_path) as f:
             cfg = yaml.safe_load(f)
+
+        # Automatically patch paths for GPU cluster if needed
+        for k in ['train_data', 'val_data', 'checkpoint_path', 'vocab_file', 'merges_file']:
+            if k in cfg:
+                cfg[k] = get_cluster_data_path(cfg[k])
+
         if mode == 'train':
             train_lm(cfg)
         else:
