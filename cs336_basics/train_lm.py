@@ -6,6 +6,7 @@ import yaml
 import numpy as np
 import torch
 import wandb
+from tqdm import tqdm
 
 from cs336_basics.model_utils import load_data, save_checkpoint, load_checkpoint
 from cs336_basics.tokenizer import Tokenizer
@@ -78,8 +79,14 @@ def train_lm(cfg):
     max_iters         = int(cfg.get('max_iters', 10000))
     max_lr            = float(cfg.get('max_lr', 1e-3))
     min_lr            = float(cfg.get('min_lr', 1e-5))
-    warmup_iters      = int(cfg.get('warmup_iters', 500))
-    cosine_cycle_iters= int(cfg.get('cosine_cycle_iters', 8000))
+    warmup_iters_frac = float(cfg.get('warmup_iters', 0.05))
+    cosine_cycle_frac = float(cfg.get('cosine_cycle_frac', 0.8))
+    assert 0.0 <= warmup_iters_frac <= 1.0, "warmup_frac must be in [0,1]"
+    assert 0.0 <= cosine_cycle_frac <= 1.0, "cosine_frac must be in [0,1]"
+
+    warmup_iters       = int(warmup_iters_frac * max_iters)
+    cosine_cycle_iters = min(int(cosine_cycle_frac * max_iters), max_iters)
+
     weight_decay      = float(cfg.get('weight_decay', 1e-2))
     beta1             = float(cfg.get('beta1', 0.9))
     beta2             = float(cfg.get('beta2', 0.999))
@@ -89,13 +96,11 @@ def train_lm(cfg):
     log_interval      = int(cfg.get('log_interval', 100))
     val_interval      = int(cfg.get('val_interval', 500))
     save_interval     = int(cfg.get('save_interval', 1000))
-    device_str        = str(cfg.get('device', 'cuda'))
     theta             = int(cfg.get('theta', 0))
-    device = torch.device(device_str if torch.cuda.is_available() else 'cpu')
+    device = "cuda" if torch.cuda.is_available() else 'cpu'
 
-    # Data & checkpoint
-    # train_data      = np.load(cfg['train_data'], mmap_mode='r').astype(np.int64)
-    # val_data        = np.load(cfg['val_data'],   mmap_mode='r').astype(np.int64)
+    print(f"Training on device: {device}")
+
 
     train_data_path = get_cluster_data_path(cfg['train_data'])
     val_data_path   = get_cluster_data_path(cfg['val_data'])
@@ -153,41 +158,43 @@ def train_lm(cfg):
     start_time = time.time()
 
     # Training loop
-    while it < max_iters:
+    with tqdm(total=max_iters) as pbar:
+        while it < max_iters:
 
-        xb, yb = load_data(train_data, batch_size, context_length, device)
-        logits = model(xb)
-        B, T, V = logits.shape
+            xb, yb = load_data(train_data, batch_size, context_length, device)
+            logits = model(xb)
+            B, T, V = logits.shape
 
-        # LR schedule
-        lr = learning_rate_schedule(it, max_lr, min_lr, warmup_iters, cosine_cycle_iters)
-        for group in optimizer.param_groups:
-            group['lr'] = lr
+            # LR schedule
+            lr = learning_rate_schedule(it, max_lr, min_lr, warmup_iters, cosine_cycle_iters)
+            for group in optimizer.param_groups:
+                group['lr'] = lr
 
-        # Loss and update
-        loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
-        optimizer.zero_grad()
-        loss.backward()
-        if max_grad_norm > 0:
-            gradient_clipping(model.parameters(), max_grad_norm)
-        optimizer.step()
-        it += 1
+            # Loss and update
+            loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
+            optimizer.zero_grad()
+            loss.backward()
+            if max_grad_norm > 0:
+                gradient_clipping(model.parameters(), max_grad_norm)
+            optimizer.step()
+            it += 1
+            pbar.update(1)
 
-        # Validation & logging
-        log_dict = {'step': it, 'train_loss': loss.item(), 'lr': lr, 'elapsed': time.time()-start_time}
-        if it % val_interval == 0:
-            val_loss = evaluate(model, val_data, batch_size, context_length, device)
-            ppl = perplexity(logits.view(B*T, V), yb.view(B*T)).item()
-            log_dict.update({'val_loss': val_loss, 'ppl': ppl})
-        if it % log_interval == 0 or it % val_interval == 0:
-            wandb.log(log_dict, step=it)
-            print(f"Step {it}: train_loss={log_dict['train_loss']:.4f}, "
-                  f"val_loss={log_dict.get('val_loss', float('nan')):.4f}, "
-                  f"ppl={log_dict.get('ppl', float('nan')):.2f}, lr={lr:.2e}")
-        # Checkpoint
-        if it % save_interval == 0:
-            save_checkpoint(model, optimizer, it, checkpoint_path)
-            print(f"Saved checkpoint at iter {it}")
+            # Validation & logging
+            log_dict = {'step': it, 'train_loss': loss.item(), 'lr': lr, 'elapsed': time.time()-start_time}
+            if it % val_interval == 0:
+                val_loss = evaluate(model, val_data, batch_size, context_length, device)
+                ppl = perplexity(logits.view(B*T, V), yb.view(B*T)).item()
+                log_dict.update({'val_loss': val_loss, 'ppl': ppl})
+            if it % log_interval == 0 or it % val_interval == 0:
+                wandb.log(log_dict, step=it)
+                print(f"Step {it}: train_loss={log_dict['train_loss']:.4f}, "
+                    f"val_loss={log_dict.get('val_loss', float('nan')):.4f}, "
+                    f"ppl={log_dict.get('ppl', float('nan')):.2f}, lr={lr:.2e}")
+            # Checkpoint
+            if it % save_interval == 0:
+                save_checkpoint(model, optimizer, it, checkpoint_path)
+                print(f"Saved checkpoint at iter {it}")
 
     # Final save
     save_checkpoint(model, optimizer, it, checkpoint_path)
@@ -245,8 +252,7 @@ if __name__ == '__main__':
     if len(sys.argv) >= 4 and sys.argv[1] in ('train','decode') and sys.argv[2]=='--config':
         mode = sys.argv[1]
         cfg_path = sys.argv[3]
-        config_file_path = get_cluster_data_path(f"model_configs/{cfg_path}")
-        with open(config_file_path) as f:
+        with open(f"model_configs/{cfg_path}") as f:
             cfg = yaml.safe_load(f)
 
         # Automatically patch paths for GPU cluster if needed

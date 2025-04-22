@@ -10,20 +10,20 @@ vocab_size: 10000
 context_length: 256
 
 d_model: 512
-num_heads: 4
-num_layers: 1
+num_heads: 16
+num_layers: 4
 d_ff: 1344
 
-batch_size: 32
-max_iters: 5
+batch_size: 512
+max_iters: 2500
 
 # Learning rate schedule
 max_lr: 0.001
 min_lr: 0.00001
-warmup_iters: 500
-cosine_cycle_iters: 8000
+warmup_iters_frac: 0.05
+cosine_cycle_frac: 0.8
 
-# Rope
+# Rope 
 theta: 10000
 
 # Optimizer hyperparameters
@@ -37,9 +37,8 @@ weight_decay: 0.01
 max_grad_norm: 1.0
 
 # Logging & saving intervals
-log_interval: 1
-val_interval: 1
-save_interval: 1
+log_interval: 10
+val_interval: 50
+save_interval: 500
 
-device: "cpu"  # "cpu" or "cuda"
 
