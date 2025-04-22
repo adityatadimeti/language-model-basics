@@ -20,11 +20,11 @@ max_iters: 2500
 # Learning rate schedule
 max_lr: 0.001
 min_lr: 0.00001
-warmup_iters_frac: 0.05
+warmup_iters_frac: 0.1
 cosine_cycle_frac: 0.8
 
 # gradient accumulation
-gradient_accumulation_steps: 4
+gradient_accumulation_steps: 1
 
 # Rope 
 theta: 10000
