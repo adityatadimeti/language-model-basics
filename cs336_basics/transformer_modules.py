@@ -1,9 +1,11 @@
+from typing import List, Tuple
 import torch
 from torch import nn
 from einops import rearrange, einsum
 from torch.nn.init import trunc_normal_
 import math
 
+from cs336_basics.tokenizer import Tokenizer
 
 class Linear(torch.nn.Module):
     def __init__(self, in_features: int, out_features: int, device: torch.device | None=None, dtype: torch.dtype | None=None):
@@ -188,10 +190,14 @@ class CausalMultiHeadAttention(torch.nn.Module):
         super().__init__()
         self.d_model = d_model
         self.num_heads = num_heads
-        self.q_proj = nn.Parameter(q_proj)
-        self.k_proj = nn.Parameter(k_proj)
-        self.v_proj = nn.Parameter(v_proj)
-        self.o_proj = nn.Parameter(o_proj)
+
+        self.q_proj = nn.Parameter(q_proj) if q_proj is not None else Linear(d_model, d_model)
+
+        self.k_proj = nn.Parameter(k_proj) if k_proj is not None else Linear(d_model, d_model)
+        
+        self.v_proj = nn.Parameter(v_proj) if v_proj is not None else Linear(d_model, d_model)
+        self.o_proj = nn.Parameter(o_proj) if o_proj is not None else Linear(d_model, d_model)
+
 
         self.d_k = self.d_v = self.d_model // self.num_heads
         
@@ -215,9 +221,13 @@ class CausalMultiHeadAttention(torch.nn.Module):
 
         sequence_length = in_features.shape[-2]
         
-        Q = einsum(self.q_proj, in_features, "d_k d_in, ... sequence_length d_in -> ... sequence_length d_k")
-        K = einsum(self.k_proj, in_features, "d_k d_in, ... sequence_length d_in -> ... sequence_length d_k")
-        V = einsum(self.v_proj, in_features, "d_v d_in, ... sequence_length d_in -> ... sequence_length d_v")
+        # Q = einsum(in_features, self.q_proj, "... s d_in, d_k d_in -> ... s d_k")
+        # K = einsum(self.k_proj, in_features, "d_k d_in, ... sequence_length d_in -> ... sequence_length d_k")
+        # V = einsum(self.v_proj, in_features, "d_v d_in, ... sequence_length d_in -> ... sequence_length d_v")
+        Q = einsum(in_features, self.q_proj.weights, "... s d_in, d_out d_in -> ... s d_out")
+        K = einsum(in_features, self.k_proj.weights, "... s d_in, d_out d_in -> ... s d_out")
+        V = einsum(in_features, self.v_proj.weights, "... s d_in, d_out d_in -> ... s d_out")
+
 
         # now split across heads?
 
@@ -246,7 +256,7 @@ class CausalMultiHeadAttention(torch.nn.Module):
         q_k_v = scaled_dot_product_attention(Q_i, K_i, V_i, mask=mask)
         q_k_v = rearrange(q_k_v, "... h sequence_length head_dim -> ... sequence_length (h head_dim)", h = self.num_heads)
 
-        mha = einsum(self.o_proj, q_k_v, "d_model hd_v, ... hd_v -> ... d_model")
+        mha = einsum(self.o_proj.weights, q_k_v, "d_model hd_v, ... hd_v -> ... d_model")
 
         return mha
 
@@ -377,3 +387,74 @@ def perplexity(logits: torch.Tensor,    # [batch_size, seq_len, vocab_size]
     targets: torch.Tensor     # [batch_size, seq_len]
 ) -> torch.Tensor:
     return torch.exp(cross_entropy(logits, targets))
+
+@torch.no_grad()
+def decode(
+    model: TransformerLM,
+    tokenizer: Tokenizer,
+    input_prompt: List[int],
+    end_token_id: int,
+    max_tokens: int = 1000,
+    temperature: float = 0.7,
+    top_p: float = 0.4,
+    device: str | torch.device = "cpu",
+) -> Tuple[List[int], str]:
+    """
+    Autoregressively sample from `model`.
+
+    Parameters
+    ----------
+    model           : TransformerLM   – already moved to correct device, set to `eval()`
+    tokenizer       : Tokenizer       – to turn output IDs back into text
+    input_prompt    : list[int]       – token IDs to start with
+    end_token_id    : int             – ID of <|endoftext|> (or any stop token)
+    max_tokens      : int             – upper bound on *generated* tokens
+    temperature     : float           – τ in softmax(v/τ); ≤0 ⇒ greedy
+    top_p           : float           – nucleus threshold in (0, 1]
+    device          : str | device    – 'cpu', 'cuda', etc.
+
+    Returns (ids, decoded_text)
+    """
+    device = torch.device(device)
+    model.eval()
+
+    # Work on a *copy* so we don’t mutate caller’s list.
+    generated: List[int] = list(input_prompt)
+    context_len = model.context_length
+
+    for _ in range(max_tokens):
+        inp = torch.tensor(generated[-context_len:], dtype=torch.long,
+                           device=device).unsqueeze(0)        # [1, T]
+        logits = model(inp)                                    # [1, T, vocab]
+        next_logits = logits[0, -1]                            # [vocab]
+
+        # --- Temperature 
+        if temperature <= 0:
+            filtered_logits = next_logits
+        else:
+            filtered_logits = next_logits / temperature
+
+        probs = torch.softmax(filtered_logits, dim=-1)         # [vocab]
+
+        # --- Top‑p nucleus sampling  
+        if 0 < top_p < 1.0:
+            sorted_probs, sorted_idx = torch.sort(probs, descending=True)
+            cumprobs = torch.cumsum(sorted_probs, dim=-1)
+            # keep tokens until cumulative mass ≥ p
+            cutoff = (cumprobs > top_p).nonzero(as_tuple=False)
+            if cutoff.numel():
+                first_cut = cutoff[0, 0]
+                sorted_probs[first_cut + 1:] = 0
+                sorted_probs.div_(sorted_probs.sum())          # renormalise
+            probs = torch.zeros_like(probs).scatter_(0, sorted_idx, sorted_probs)
+
+        # --- Sample  
+        next_id = torch.multinomial(probs, 1).item()
+        generated.append(next_id)
+
+        # --- Stop?  
+        if next_id == end_token_id:
+            break
+
+    text = tokenizer.decode(generated)
+    return generated, text
