@@ -193,7 +193,7 @@ def train_lm(cfg):
             pbar.update(1)
 
             # Validation & logging
-            log_dict = {'step': it, 'train_loss': loss.item(), 'lr': lr, 'elapsed': time.time()-start_time}
+            log_dict = {'step': it, 'train_loss': loss.item() * gradient_accum, 'lr': lr, 'elapsed': time.time()-start_time}
             if it % val_interval == 0:
                 val_loss = evaluate(model, val_data, batch_size, context_length, device)
                 ppl = perplexity(logits.view(B*T, V), yb.view(B*T)).item()
