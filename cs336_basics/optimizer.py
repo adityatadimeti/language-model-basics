@@ -15,6 +15,14 @@ def learning_rate_schedule(it: int, max_learning_rate: float, min_learning_rate:
         # post annealing
         return min_learning_rate
 
+def gradient_clipping(parameters: Iterable[torch.nn.Parameter], max_l2_norm: float ) -> None:
+    eps = 1e-6
+    for param in parameters:
+        if param.grad is None:
+            continue
+        norm = torch.linalg.norm(param.grad)
+        if norm >= max_l2_norm:
+            param.grad.mul_(max_l2_norm / (norm + eps))
 
 class SGD(torch.optim.Optimizer):
     def __init__(self, params, lr=None):
