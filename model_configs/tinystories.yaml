@@ -14,12 +14,13 @@ num_heads: 16
 num_layers: 4
 d_ff: 1344
 
-batch_size: 512
-max_iters: 2500
+batch_size: 64
+max_iters: 20000
 
 # Learning rate schedule
-max_lr: 0.1
-min_lr: 0.01
+max_lr: 0.005
+min_lr: 0.0005
+
 warmup_iters_frac: 0.2
 cosine_cycle_frac: 0.7
 

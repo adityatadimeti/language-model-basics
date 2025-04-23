@@ -1,0 +1,16 @@
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: tadimeti (tadimeti-stanford) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.19.8
+wandb: Run data is saved locally in /home/c-tadimeti/language-model-basics/wandb/run-20250422_235123-pb3xqnhu
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run owt
+wandb: ⭐️ View project at https://wandb.ai/tadimeti-stanford/transformer_lm
+wandb: 🚀 View run at https://wandb.ai/tadimeti-stanford/transformer_lm/runs/pb3xqnhu
+Traceback (most recent call last):
+  File "/home/c-tadimeti/language-model-basics/cs336_basics/train_lm.py", line 308, in <module>
+    train_lm(cfg)
+    ~~~~~~~~^^^^^
+  File "/home/c-tadimeti/language-model-basics/cs336_basics/train_lm.py", line 74, in train_lm
+    run_ckpt_path = os.path.join(cfg['checkpoint_directory'], experiment_name)
+                                 ~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'checkpoint_directory'

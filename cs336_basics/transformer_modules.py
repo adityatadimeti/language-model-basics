@@ -52,6 +52,7 @@ class Embedding(nn.Module):
         self.weights = nn.Parameter(torch.empty(num_embeddings, embedding_dim, dtype=dtype, device=device))
         trunc_val = 3.0
         self.initialize_weights(self.weights, mean=0, std=self.std, trunc_low=-trunc_val, trunc_high=trunc_val)
+        
 
 
     def initialize_weights(self, weights, mean: float, std: float, trunc_low: float | None = None, trunc_high: float | None = None ):
@@ -80,7 +81,7 @@ class RMSNorm(torch.nn.Module):
         Process an input tensor of shape (batch_size, sequence_length, d_model) and return a tensor of the same shape.
         """
 
-        # First upcast input to torch.float32 to prevent overflow when squaring the input
+        #First upcast input to torch.float32 to prevent overflow when squaring the input
         in_dtype = x.dtype
         x_upcasted = x.to(torch.float32)
 
@@ -93,6 +94,7 @@ class RMSNorm(torch.nn.Module):
         result = einsum((x_upcasted / rms_val), self.weights, "... d_model, ... d_model -> ... d_model")
 
         return result.to(in_dtype)
+
     
 class SwiGLU(torch.nn.Module):
     def __init__(self, d_model: int, d_ff: int, device: torch.device | None = None, dtype:  torch.dtype | None = None):
@@ -313,15 +315,18 @@ class TransformerBlock(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Pre‑norm, attention + residual
-        res = x
-        x = self.rms1(x)
-        x = self.mha(x) + res
+        # res = x
+        # x = self.rms1(x)
+        # x = self.mha(x) + res
 
-        # Pre‑norm, ffn + residual
-        res = x
-        x = self.rms2(x)
-        x = self.ffn(x) + res
-        return x
+        # # Pre‑norm, ffn + residual
+        # res = x
+        # x = self.rms2(x)
+        # x = self.ffn(x) + res
+        # return x
+
+        z = self.rms1(self.mha(x) + x)
+        y = self.rms2(z + self.ffn(z))
 
 class TransformerLM(torch.nn.Module):
     def __init__(self, 
