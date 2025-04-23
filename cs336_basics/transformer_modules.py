@@ -190,13 +190,27 @@ class CausalMultiHeadAttention(torch.nn.Module):
         super().__init__()
         self.d_model = d_model
         self.num_heads = num_heads
-
-        self.q_proj = nn.Parameter(q_proj) if q_proj is not None else Linear(d_model, d_model)
-
-        self.k_proj = nn.Parameter(k_proj) if k_proj is not None else Linear(d_model, d_model)
         
-        self.v_proj = nn.Parameter(v_proj) if v_proj is not None else Linear(d_model, d_model)
-        self.o_proj = nn.Parameter(o_proj) if o_proj is not None else Linear(d_model, d_model)
+        self.q_proj = Linear(d_model, d_model)
+        self.k_proj = Linear(d_model, d_model)
+        self.v_proj = Linear(d_model, d_model)
+        self.o_proj = Linear(d_model, d_model)
+
+        # if they passed in an init tensor, copy it in
+        if q_proj is not None:
+            with torch.no_grad():
+                self.q_proj.weights.copy_(q_proj)
+        if k_proj is not None:
+            with torch.no_grad():
+                self.k_proj.weights.copy_(k_proj)
+        if v_proj is not None:
+            with torch.no_grad():
+                self.v_proj.weights.copy_(v_proj)
+        if o_proj is not None:
+            with torch.no_grad():
+                self.o_proj.weights.copy_(o_proj)
+
+        
 
 
         self.d_k = self.d_v = self.d_model // self.num_heads

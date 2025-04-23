@@ -121,8 +121,11 @@ def train_lm(cfg):
         # +1 so we can form a context→target pair
         full_train = full_train[: N + context_length + 1]
         full_val   = full_val[:   N + context_length + 1]
-    train_data = full_train.astype(np.int64)
-    val_data   = full_val.astype(np.int64)
+    # train_data = full_train.astype(np.int64)
+    # val_data   = full_val.astype(np.int64)
+
+    train_data = full_train
+    val_data = full_val
 
 
 
