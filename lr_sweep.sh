@@ -15,21 +15,23 @@ LR_LIST=(0.001 0.0005 0.0002 0.0001)
 # 2) pick the one for this array index
 MAX_LR=${LR_LIST[$SLURM_ARRAY_TASK_ID]}
 
-# 3) optionally compute min_lr as a fraction, e.g. 1% of max_lr
+# 3) optionally compute min_lr as 1% of max_lr
 MIN_LR=$(python3 - <<EOF
 print(${MAX_LR} * 1e-2)
 EOF
 )
 
-# 4) generate a one‐off tmp config with the new lrs
-TMP_CFG=$(mktemp /tmp/tinystories_XXXX.yaml)
-yq eval \
-  ".max_lr = ${MAX_LR} |
-   .min_lr = ${MIN_LR}" \
-  model_configs/tinystories.yaml > $TMP_CFG
+# 4) generate a one‐off tmp config in model_configs
+TMP_CFG=$(mktemp model_configs/tinystories_XXXX.yaml)
 
-# 5) launch your training
-uv run cs336_basics/train_lm.py train --config $TMP_CFG
+# 5) patch in the new LR values (assumes lines like "max_lr: ..." and "min_lr: ..." at top level)
+sed -e "s/^max_lr:.*$/max_lr: ${MAX_LR}/" \
+    -e "s/^min_lr:.*$/min_lr: ${MIN_LR}/" \
+    model_configs/tinystories.yaml > $TMP_CFG
 
-# cleanup (optional)
+# 6) launch your training, passing only the basename so train_lm.py sees model_configs/${CFG_FILE}
+CFG_FILE=$(basename $TMP_CFG)
+uv run cs336_basics/train_lm.py train --config $CFG_FILE
+
+# 7) cleanup
 rm $TMP_CFG

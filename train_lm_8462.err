@@ -1,21 +1,0 @@
-wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
-wandb: Currently logged in as: tadimeti (tadimeti-stanford) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
-wandb: Tracking run with wandb version 0.19.8
-wandb: Run data is saved locally in /home/c-tadimeti/language-model-basics/wandb/run-20250422_101747-kgthw2du
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run owt
-wandb: ⭐️ View project at https://wandb.ai/tadimeti-stanford/transformer_lm
-wandb: 🚀 View run at https://wandb.ai/tadimeti-stanford/transformer_lm/runs/kgthw2du
-  0%|          | 0/20000 [00:00<?, ?it/s]/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
-  warnings.warn(
-  0%|          | 1/20000 [00:27<150:51:07, 27.15s/it]  0%|          | 2/20000 [00:52<146:04:32, 26.30s/it]  0%|          | 3/20000 [00:55<86:38:50, 15.60s/it]   0%|          | 3/20000 [00:55<103:17:01, 18.59s/it]
-Traceback (most recent call last):
-  File "/home/c-tadimeti/language-model-basics/cs336_basics/train_lm.py", line 266, in <module>
-    train_lm(cfg)
-    ~~~~~~~~^^^^^
-  File "/home/c-tadimeti/language-model-basics/cs336_basics/train_lm.py", line 166, in train_lm
-    xb, yb = load_data(train_data, batch_size, context_length, device)
-             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/c-tadimeti/language-model-basics/cs336_basics/model_utils.py", line 15, in load_data
-    x_tensor = torch.from_numpy(x).long().to(device)
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.32 GiB. GPU 0 has a total capacity of 79.19 GiB of which 14.79 GiB is free. Including non-PyTorch memory, this process has 64.39 GiB memory in use. Of the allocated memory 6.94 GiB is allocated by PyTorch, and 56.73 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
