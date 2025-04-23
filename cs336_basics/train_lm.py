@@ -185,7 +185,11 @@ def train_lm(cfg):
                 group['lr'] = lr
 
             # Loss and update
-            loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
+            # loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
+            loss = cross_entropy(
+                logits.view(-1, V),          
+                yb.reshape(-1)               
+            )
             loss = loss / gradient_accum
             loss.backward()
 

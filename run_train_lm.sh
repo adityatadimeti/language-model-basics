@@ -10,4 +10,4 @@
 #SBATCH --error=train_lm_%j.err
 
 # Run the training script
-uv run cs336_basics/train_lm.py train --config owt.yaml
+uv run cs336_basics/train_lm.py train --config tinystories.yaml

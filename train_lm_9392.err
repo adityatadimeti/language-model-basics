@@ -1,0 +1,11 @@
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: tadimeti (tadimeti-stanford) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.19.8
+wandb: Run data is saved locally in /home/c-tadimeti/language-model-basics/wandb/run-20250422_185029-qkz37rqr
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run worthy-wildflower-62
+wandb: ⭐️ View project at https://wandb.ai/tadimeti-stanford/transformer_lm
+wandb: 🚀 View run at https://wandb.ai/tadimeti-stanford/transformer_lm/runs/qkz37rqr
+  0%|          | 0/2500 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  0%|          | 1/2500 [00:16<11:25:35, 16.46s/it]slurmstepd-ad12a3ca-01: error: *** JOB 9392 ON ad12a3ca-01 CANCELLED AT 2025-04-22T18:50:53 ***
