@@ -14,14 +14,14 @@ num_heads: 32
 num_layers: 8
 d_ff: 1344
 
-batch_size: 128
-max_iters: 2500
+batch_size: 64
+max_iters: 10000
 
 # Learning rate schedule
-max_lr: 0.001
-min_lr: 0.00001
-warmup_iters_frac: 0.1
-cosine_cycle_frac: 0.8
+max_lr: 0.005
+min_lr: 0.0005
+warmup_iters_frac: 0.2
+cosine_cycle_frac: 0.7
 
 # gradient accumulation
 gradient_accumulation_steps: 1
@@ -40,8 +40,8 @@ weight_decay: 0.01
 max_grad_norm: 1.0
 
 # Logging & saving intervals
-log_interval: 10
-val_interval: 50
-save_interval: 500
+log_interval: 500
+val_interval: 500
+save_interval: 5000000000
 
 
