@@ -18,7 +18,7 @@ batch_size: 512
 max_iters: 2500
 
 # Learning rate schedule
-max_lr: 0.001
+max_lr: 0.0001
 min_lr: 0.00001
 warmup_iters_frac: 0.05
 cosine_cycle_frac: 0.8
