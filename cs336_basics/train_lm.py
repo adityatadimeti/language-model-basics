@@ -51,7 +51,11 @@ def evaluate(
             xb, yb = load_data(val_data, batch_size, context_length, device)
             logits = model(xb)
             B, T, V = logits.shape
-            loss = cross_entropy(logits.view(B*T, V), yb.view(B*T))
+            loss = cross_entropy(
+                logits.view(-1, V),           
+                yb.reshape(-1)                
+            )
+            
             losses.append(loss.item())
     model.train()
     return float(np.mean(losses))
@@ -209,7 +213,10 @@ def train_lm(cfg):
             log_dict = {'step': it, 'train_loss': loss.item() * gradient_accum, 'lr': lr, 'elapsed': time.time()-start_time}
             if it % val_interval == 0:
                 val_loss = evaluate(model, val_data, batch_size, context_length, device)
-                ppl = perplexity(logits.view(B*T, V), yb.view(B*T)).item()
+                ppl = perplexity(
+                    logits.view(-1, V),   
+                    yb.reshape(-1)        
+                ).item()
                 log_dict.update({'val_loss': val_loss, 'ppl': ppl})
             if it % log_interval == 0 or it % val_interval == 0:
                 wandb.log(log_dict, step=it)
