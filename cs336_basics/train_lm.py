@@ -59,16 +59,24 @@ def evaluate(
 
 def train_lm(cfg):
     # Initialize Weights & Biases run
-    exp_name = cfg.get('experiment_name', os.path.basename(cfg['checkpoint_path']).split('.')[0])
+    experiment_name = cfg.get('experiment_name', None)
     wandb.init(
         project=cfg.get('wandb_project', 'transformer_lm'),
-        name=exp_name,
         config=cfg,
+        name=experiment_name,
         resume=cfg.get('resume_id', None)
     )
+    experiment_name = wandb.run.name
+    run_ckpt_path = os.path.join(cfg['checkpoint_directory'], experiment_name)
+    os.makedirs(run_ckpt_path, exist_ok=True)
+
+    print(f"Saving checkpoints to: {run_ckpt_path}")
 
 
-    # Hyperparameters
+
+
+
+    # Hyperparameters   
     vocab_size        = int(cfg['vocab_size'])
     context_length    = int(cfg.get('context_length', 128))
     d_model           = int(cfg.get('d_model', 512))
@@ -119,9 +127,7 @@ def train_lm(cfg):
 
 
 
-    checkpoint_path = cfg['checkpoint_path']
     resume          = cfg.get('resume', None)
-    os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
 
 
     # Model
@@ -205,11 +211,12 @@ def train_lm(cfg):
                     f"ppl={log_dict.get('ppl', float('nan')):.2f}, lr={lr:.2e}")
             # Checkpoint
             if it % save_interval == 0:
-                save_checkpoint(model, optimizer, it, checkpoint_path)
+                save_checkpoint(model, optimizer, it, os.path.join(run_ckpt_path, f"checkpoint_{it}.pt"))
+
                 print(f"Saved checkpoint at iter {it}")
 
     # Final save
-    save_checkpoint(model, optimizer, it, checkpoint_path)
+    save_checkpoint(model, optimizer, it, os.path.join(run_ckpt_path, f"checkpoint_{it}.pt"))
     print(f"Training complete at step {it}")
     wandb.finish()
 
