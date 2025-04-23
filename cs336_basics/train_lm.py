@@ -91,7 +91,7 @@ def train_lm(cfg):
     max_iters         = int(cfg.get('max_iters', 10000))
     max_lr            = float(cfg.get('max_lr', 1e-3))
     min_lr            = float(cfg.get('min_lr', 1e-5))
-    warmup_iters_frac = float(cfg.get('warmup_iters', 0.05))
+    warmup_iters_frac = float(cfg.get('warmup_iters_frac', 0.05))
     cosine_cycle_frac = float(cfg.get('cosine_cycle_frac', 0.8))
     assert 0.0 <= warmup_iters_frac <= 1.0, "warmup_frac must be in [0,1]"
     assert 0.0 <= cosine_cycle_frac <= 1.0, "cosine_frac must be in [0,1]"
@@ -287,6 +287,17 @@ if __name__ == '__main__':
         cfg_path = sys.argv[3]
         with open(f"model_configs/{cfg_path}") as f:
             cfg = yaml.safe_load(f)
+        
+        # argv:  python train_lm.py train --config cfg.yaml key1=val1 key2=val2 ...
+        for override in sys.argv[4:]:
+            if "=" not in override:
+                raise ValueError(f"Bad override '{override}', expected key=value")
+            k, v = override.split("=", 1)
+            if k in cfg:
+                cfg[k] = type(cfg[k])(v)       # cast to original type
+            else:
+                cfg[k] = yaml.safe_load(v)     # new key → best-effort cast
+
 
         # Automatically patch paths for GPU cluster if needed
         for k in ['train_data', 'val_data', 'checkpoint_path', 'vocab_file', 'merges_file']:
