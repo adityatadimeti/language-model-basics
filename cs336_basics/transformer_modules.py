@@ -327,6 +327,7 @@ class TransformerBlock(torch.nn.Module):
 
         z = self.rms1(self.mha(x) + x)
         y = self.rms2(z + self.ffn(z))
+        return y
 
 class TransformerLM(torch.nn.Module):
     def __init__(self, 
