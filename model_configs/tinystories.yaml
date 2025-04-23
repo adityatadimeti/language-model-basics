@@ -1,6 +1,6 @@
 train_data: "data/tinystories_tokenized_ids_train.npy"
 val_data: "data/tinystories_tokenized_ids_validation.npy"
-checkpoint_directory: "model_checkpoints"
+checkpoint_directory: "/data/c-tadimeti/data/model_checkpoints"
 # resume: "checkpoints/transformer_lm.ckpt"  # uncomment to resume from a specific checkpoint
 
 #experiment_name: "test"
