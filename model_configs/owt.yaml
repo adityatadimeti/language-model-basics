@@ -1,9 +1,9 @@
 train_data: "data/owt_tokenized_ids.npy"
 val_data: "data/owt_valid_ids.npy"
-checkpoint_path: "model_checkpoints/owt_transformer_lm.ckpt"
+checkpoint_directory: "/data/c-tadimeti/data/model_checkpoints"
 # resume: "checkpoints/transformer_lm.ckpt"  # uncomment to resume from a specific checkpoint
 
-experiment_name: "owt"
+#experiment_name: "owt"
 
 
 vocab_size: 32000
@@ -34,7 +34,7 @@ optimizer: "adamw"    # options: "sgd" or "adamw"
 beta1: 0.9
 beta2: 0.999
 eps: 1e-8
-weight_decay: 0.01
+weight_decay: 0.001
 
 # Gradient clipping
 max_grad_norm: 1.0
