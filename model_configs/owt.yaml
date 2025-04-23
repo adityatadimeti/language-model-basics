@@ -15,7 +15,7 @@ num_layers: 8
 d_ff: 1344
 
 batch_size: 64
-max_iters: 10000
+max_iters: 25000
 
 # Learning rate schedule
 max_lr: 0.005
