@@ -251,6 +251,7 @@ class CausalMultiHeadAttention(torch.nn.Module):
 
             Q_i = self.rope(Q_i, self.token_positions)
             K_i = self.rope(K_i, self.token_positions)
+            print("applied RoPE")
         
 
         q_k_v = scaled_dot_product_attention(Q_i, K_i, V_i, mask=mask)
