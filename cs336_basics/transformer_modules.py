@@ -6,6 +6,7 @@ from torch.nn.init import trunc_normal_
 import math
 
 from cs336_basics.tokenizer import Tokenizer
+from tqdm import tqdm
 
 class Linear(torch.nn.Module):
     def __init__(self, in_features: int, out_features: int, device: torch.device | None=None, dtype: torch.dtype | None=None):
@@ -107,6 +108,7 @@ class SwiGLU(torch.nn.Module):
         self.w1 = Linear(in_features=self.d_model, out_features=self.d_ff, device=device, dtype=dtype)
         self.w2 = Linear(in_features=self.d_ff, out_features=self.d_model, device=device, dtype=dtype)
         self.w3 = Linear(in_features=self.d_model, out_features=self.d_ff, device=device, dtype=dtype)
+
     
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -167,7 +169,6 @@ def softmax(x: torch.Tensor, i: int) -> torch.Tensor:
     x is the tensor to apply softmax to
     We apply softmax to the i-th dimension of the input tensor.
     """
-
     max_val = x.max(dim=i, keepdim=True).values
     normalized_x = x - max_val
     return torch.exp(normalized_x) / torch.sum(torch.exp(normalized_x), dim=i, keepdim=True)
@@ -315,19 +316,19 @@ class TransformerBlock(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Pre‑norm, attention + residual
-        # res = x
-        # x = self.rms1(x)
-        # x = self.mha(x) + res
+        res = x
+        x = self.rms1(x)
+        x = self.mha(x) + res
 
-        # # Pre‑norm, ffn + residual
-        # res = x
-        # x = self.rms2(x)
-        # x = self.ffn(x) + res
-        # return x
+        # Pre‑norm, ffn + residual
+        res = x
+        x = self.rms2(x)
+        x = self.ffn(x) + res
+        return x
 
-        z = self.rms1(self.mha(x) + x)
-        y = self.rms2(z + self.ffn(z))
-        return y
+        # z = self.rms1(self.mha(x) + x)
+        # y = self.rms2(z + self.ffn(z))
+        # return y
 
 class TransformerLM(torch.nn.Module):
     def __init__(self, 
@@ -414,7 +415,7 @@ def decode(
     tokenizer: Tokenizer,
     input_prompt: List[int],
     end_token_id: int,
-    max_tokens: int = 1000,
+    max_tokens: int = 10,
     temperature: float = 0.7,
     top_p: float = 0.4,
     device: str | torch.device = "cpu",
@@ -442,12 +443,11 @@ def decode(
     generated: List[int] = list(input_prompt)
     context_len = model.context_length
 
-    for _ in range(max_tokens):
+    for _ in tqdm(range(max_tokens), desc="Processing tokens"):
         inp = torch.tensor(generated[-context_len:], dtype=torch.long,
                            device=device).unsqueeze(0)        # [1, T]
         logits = model(inp)                                    # [1, T, vocab]
         next_logits = logits[0, -1]                            # [vocab]
-
         # --- Temperature 
         if temperature <= 0:
             filtered_logits = next_logits

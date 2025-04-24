@@ -50,7 +50,14 @@ def load_checkpoint(
     model: nn.Module,
     optimizer: optim.Optimizer
 ) -> int:
+
     checkpoint = torch.load(src, map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint["model_state"])
+    new_sd = {
+        key.replace("_orig_mod.", ""): value
+        for key, value in checkpoint["model_state"].items()
+    }
+    #model.load_state_dict(checkpoint["model_state"])
+    model.load_state_dict(new_sd)
+
     optimizer.load_state_dict(checkpoint["optimizer_state"])
     return checkpoint["iteration"]

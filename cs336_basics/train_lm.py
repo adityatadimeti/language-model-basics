@@ -198,12 +198,10 @@ def train_lm(cfg):
             loss.backward()
 
 
-            # only step & clip once every `accum_steps` minibatches
-            if (it + 1) % gradient_accum == 0:
-                if max_grad_norm > 0:
-                    gradient_clipping(model.parameters(), max_grad_norm)
-                optimizer.step()
-                optimizer.zero_grad()
+            if max_grad_norm > 0:
+                gradient_clipping(model.parameters(), max_grad_norm)
+            optimizer.step()
+            optimizer.zero_grad()
 
             
             it += 1
@@ -259,13 +257,14 @@ def run_decode(cfg):
         cfg['merges_file'],
         special_tokens=cfg.get('special_tokens', None)
     )
-    prompt_ids = tok.encode(cfg.get('prompt', ''))
+    prompt_ids = tok.encode(cfg.get('prompt', 'Once upon a time,'))
     eot = tok.encode(cfg.get('end_token', '<|endoftext|>'))[0]
 
     # sampling args
     max_tokens = cfg.get('decode_max_tokens', 100)
     temperature= cfg.get('decode_temperature', 1.0)
     top_p      = cfg.get('decode_top_p', 0.9)
+
 
     ids, text = decode(
         model,
@@ -278,7 +277,6 @@ def run_decode(cfg):
         device=device,
     )
     print(text)
-
 
 if __name__ == '__main__':
     # usage: python script.py train --config config.yaml
