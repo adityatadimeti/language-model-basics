@@ -71,10 +71,15 @@ def train_lm(cfg):
         resume=cfg.get('resume_id', None)
     )
     experiment_name = wandb.run.name
-    run_ckpt_path = os.path.join(cfg['checkpoint_directory'], experiment_name)
-    os.makedirs(run_ckpt_path, exist_ok=True)
 
-    print(f"Saving checkpoints to: {run_ckpt_path}")
+    run_ckpt_path = None
+    # Check if checkpoint_directory is specified in the config
+    if 'checkpoint_directory' in cfg and cfg['checkpoint_directory']:
+        run_ckpt_path = os.path.join(cfg['checkpoint_directory'], experiment_name)
+        os.makedirs(run_ckpt_path, exist_ok=True)
+        print(f"Saving checkpoints to: {run_ckpt_path}")
+    else:
+        print("No checkpoint directory specified in config, checkpoints will not be saved")
 
 
 
@@ -222,13 +227,14 @@ def train_lm(cfg):
                     f"val_loss={log_dict.get('val_loss', float('nan')):.4f}, "
                     f"ppl={log_dict.get('ppl', float('nan')):.2f}, lr={lr:.2e}")
             # Checkpoint
-            if it % save_interval == 0:
+            if run_ckpt_path is not None and it % save_interval == 0:
                 save_checkpoint(model, optimizer, it, os.path.join(run_ckpt_path, f"checkpoint_{it}.pt"))
 
                 print(f"Saved checkpoint at iter {it}")
 
     # Final save
-    save_checkpoint(model, optimizer, it, os.path.join(run_ckpt_path, f"checkpoint_{it}.pt"))
+    if run_ckpt_path is not None:
+        save_checkpoint(model, optimizer, it, os.path.join(run_ckpt_path, f"checkpoint_{it}.pt"))
     print(f"Training complete at step {it}")
     wandb.finish()
 

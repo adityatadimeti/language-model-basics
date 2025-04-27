@@ -1,5 +1,6 @@
-train_data: "data/owt_tokenized_ids.npy"
-val_data: "data/owt_valid_ids.npy"
+
+train_data: "random"
+val_data: "random"
 checkpoint_directory: "/data/c-tadimeti/data/model_checkpoints"
 # resume: "checkpoints/transformer_lm.ckpt"  # uncomment to resume from a specific checkpoint
 
