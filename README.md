@@ -2,6 +2,7 @@
 
 
 ```sh
+cd cs336-basics
 uv run pytest
 ```
 ### Download data
