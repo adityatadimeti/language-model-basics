@@ -26,7 +26,8 @@ cd ..
 
 ### Train model
 
-```cd cs336-basics
+```
+cd cs336-basics
 uv run cs336_basics/train_lm.py train --config tinystories.yaml
 ```
 
