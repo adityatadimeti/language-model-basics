@@ -1,0 +1,44 @@
+train_data: "data/tinystories_tokenized_ids_train.npy"
+val_data: "data/tinystories_tokenized_ids_validation.npy"
+checkpoint_directory: "model_checkpoints"
+# resume: "checkpoints/transformer_lm.ckpt"  # uncomment to resume from a specific checkpoint
+
+#experiment_name: "test"
+
+
+vocab_size: 10000
+context_length: 256
+
+d_model: 512
+num_heads: 16
+num_layers: 4
+d_ff: 1344
+
+batch_size: 512
+max_iters: 2500
+
+# Learning rate schedule
+max_lr: 0.001
+min_lr: 1e-05
+warmup_iters_frac: 0.05
+cosine_cycle_frac: 0.8
+
+# Rope 
+theta: 10000
+
+# Optimizer hyperparameters
+optimizer: "adamw"    # options: "sgd" or "adamw"
+beta1: 0.9
+beta2: 0.999
+eps: 1e-8
+weight_decay: 0.01
+
+# Gradient clipping
+max_grad_norm: 1.0
+
+# Logging & saving intervals
+log_interval: 50
+val_interval: 50
+save_interval: 500
+
+

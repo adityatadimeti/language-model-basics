@@ -1,0 +1,48 @@
+train_data: "data/tinystories_tokenized_ids_validation.npy"
+
+val_data: "data/tinystories_tokenized_ids_validation.npy"
+checkpoint_path: "model_checkpoints/overfit_test.ckpt"
+experiment_name: "overfit_test"
+
+# Model small enough to overfit quickly
+d_model: 32
+num_heads: 2
+num_layers: 1
+d_ff: 64
+
+# Toy settings
+vocab_size: 10000  # adjust if needed
+context_length: 16
+batch_size: 4
+
+# Train long enough to memorize max_iters: 200
+max_iters: 10000
+
+theta: 10000
+
+# Use only the first 1,024 tokens
+max_data_tokens:  1
+
+# Strong learning signal
+max_lr: 1e-2
+min_lr: 1e-4
+warmup_iters: 0
+cosine_cycle_iters: 200
+
+# Optimizer with no weight decay to help overfit
+optimizer: "adamw"
+beta1: 0.9
+beta2: 0.999
+eps: 1e-8
+weight_decay: 0.0
+
+# Disable gradient clipping for pure overfit
+max_grad_norm: 0.0
+
+# Log and save more frequently
+dev_interval: 10  # same as val_interval for dev
+log_interval: 10
+val_interval: 10
+save_interval: 50
+
+
