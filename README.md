@@ -26,4 +26,4 @@ cd ..
 
 uv run cs336_basics/train_lm.py train --config tinystories.yaml
 
->>>>>>> 360bfd4 (V1 launch)
+
