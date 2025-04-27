@@ -2,12 +2,14 @@
 
 
 ```sh
+cd cs336-basics
 uv run pytest
 ```
 ### Download data
 Download the TinyStories data and a subsample of OpenWebText
 
 ``` sh
+cd cs336-basics
 mkdir -p data
 cd data
 
@@ -24,6 +26,9 @@ cd ..
 
 ### Train model
 
+```
+cd cs336-basics
 uv run cs336_basics/train_lm.py train --config tinystories.yaml
+```
 
 
