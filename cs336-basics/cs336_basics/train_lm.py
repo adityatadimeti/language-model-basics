@@ -8,7 +8,7 @@ import torch
 import wandb
 from tqdm import tqdm
 
-from cs336_basics.model_utils import load_data, save_checkpoint, load_checkpoint
+from cs336_basics.model_utils import load_data, save_checkpoint, load_checkpoint, get_cluster_data_path
 from cs336_basics.tokenizer import Tokenizer
 from cs336_basics.transformer_modules import TransformerLM, cross_entropy, perplexity, decode
 from cs336_basics.optimizer import (
@@ -18,18 +18,6 @@ from cs336_basics.optimizer import (
     AdamW,
 )
 
-def get_cluster_data_path(path: str) -> str:
-    """
-    Prepends '/data/$USER/' to `path` if on GPU cluster.
-    Otherwise, returns path unchanged.
-    """
-    if torch.cuda.is_available() and os.path.exists("/data"):
-        user = os.environ.get("USER", "unknown")
-        cluster_prefix = f"/data/{user}"
-        # Only prepend if not already there
-        if not path.startswith(cluster_prefix):
-            return os.path.join(cluster_prefix, path.lstrip("/"))
-    return path
 
 
 

@@ -61,3 +61,16 @@ def load_checkpoint(
 
     optimizer.load_state_dict(checkpoint["optimizer_state"])
     return checkpoint["iteration"]
+
+def get_cluster_data_path(path: str) -> str:
+    """
+    Prepends '/data/$USER/' to `path` if on GPU cluster.
+    Otherwise, returns path unchanged.
+    """
+    if torch.cuda.is_available() and os.path.exists("/data"):
+        user = os.environ.get("USER", "unknown")
+        cluster_prefix = f"/data/{user}"
+        # Only prepend if not already there
+        if not path.startswith(cluster_prefix):
+            return os.path.join(cluster_prefix, path.lstrip("/"))
+    return path
