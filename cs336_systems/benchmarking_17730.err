@@ -81,3 +81,136 @@ Exception ignored in: <_io.BufferedWriter name=49>
 BrokenPipeError: [Errno 32] Broken pipe
   0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
   warnings.warn(
+  7%|▋         | 1/15 [01:16<17:57, 76.98s/it]  7%|▋         | 1/15 [02:09<30:17, 129.82s/it]
+Traceback (most recent call last):
+  File "/home/c-tadimeti/language-model-basics/cs336_systems/benchmarking_script.py", line 227, in <module>
+    profile(cfg)
+    ~~~~~~~^^^^^
+  File "/home/c-tadimeti/language-model-basics/cs336_systems/benchmarking_script.py", line 101, in profile
+    logits = model(xb)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 574, in _fn
+    return fn(*args, **kwargs)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 383, in forward
+    def forward(self, in_indices: torch.Tensor) -> torch.Tensor:
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 745, in _fn
+    return fn(*args, **kwargs)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/aot_autograd.py", line 1184, in forward
+    return compiled_fn(full_args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 310, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+        compiled_fn, args_, disable_amp=disable_amp, steal_args=True
+    )
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 126, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 100, in g
+    return f(*args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/autograd/function.py", line 575, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 1585, in forward
+    fw_outs = call_func_at_runtime_with_args(
+        CompiledFunction.compiled_fw,
+        args,
+        disable_amp=disable_amp,
+    )
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 126, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 490, in wrapper
+    return compiled_fn(runtime_args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 672, in inner_fn
+    outs = compiled_fn(args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/output_code.py", line 466, in __call__
+    return self.current_callable(inputs)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/utils.py", line 2128, in run
+    return model(new_inputs)
+  File "/tmp/torchinductor_c-tadimeti/73/c73bxyi5vrhkkam5nofpy6rmp3vahwufa443tzyqi7hgmodh3htu.py", line 5649, in call
+    buf1272 = empty_strided_cuda((4, 25, 1024, 1024), (26214400, 1048576, 1024, 1), torch.float32)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 400.00 MiB. GPU 0 has a total capacity of 79.19 GiB of which 215.06 MiB is free. Including non-PyTorch memory, this process has 78.97 GiB memory in use. Of the allocated memory 77.07 GiB is allocated by PyTorch, and 1.18 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:52<12:18, 52.78s/it] 13%|█▎        | 2/15 [01:41<10:57, 50.58s/it] 20%|██        | 3/15 [01:42<05:31, 27.66s/it] 27%|██▋       | 4/15 [01:42<03:05, 16.89s/it] 33%|███▎      | 5/15 [01:42<01:49, 10.94s/it] 40%|████      | 6/15 [01:43<01:06,  7.35s/it] 47%|████▋     | 7/15 [01:43<00:40,  5.07s/it] 53%|█████▎    | 8/15 [01:44<00:25,  3.58s/it] 60%|██████    | 9/15 [01:44<00:15,  2.58s/it] 67%|██████▋   | 10/15 [01:44<00:09,  1.90s/it] 67%|██████▋   | 10/15 [01:44<00:52, 10.49s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:52<12:10, 52.16s/it] 13%|█▎        | 2/15 [01:40<10:52, 50.16s/it] 20%|██        | 3/15 [01:41<05:30, 27.54s/it] 27%|██▋       | 4/15 [01:42<03:05, 16.91s/it] 33%|███▎      | 5/15 [01:42<01:50, 11.03s/it] 40%|████      | 6/15 [01:43<01:07,  7.49s/it] 47%|████▋     | 7/15 [01:43<00:41,  5.24s/it] 53%|█████▎    | 8/15 [01:44<00:26,  3.77s/it] 60%|██████    | 9/15 [01:45<00:16,  2.78s/it] 67%|██████▋   | 10/15 [01:45<00:10,  2.11s/it] 67%|██████▋   | 10/15 [01:45<00:52, 10.58s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:53<12:23, 53.11s/it] 13%|█▎        | 2/15 [01:42<11:03, 51.06s/it] 20%|██        | 3/15 [01:43<05:38, 28.24s/it] 27%|██▋       | 4/15 [01:44<03:12, 17.52s/it] 33%|███▎      | 5/15 [01:46<01:55, 11.60s/it] 40%|████      | 6/15 [01:47<01:12,  8.03s/it] 47%|████▋     | 7/15 [01:48<00:46,  5.76s/it] 53%|█████▎    | 8/15 [01:49<00:29,  4.27s/it] 60%|██████    | 9/15 [01:50<00:19,  3.28s/it] 67%|██████▋   | 10/15 [01:51<00:13,  2.61s/it] 67%|██████▋   | 10/15 [01:51<00:55, 11.15s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:54<12:41, 54.37s/it]  7%|▋         | 1/15 [01:29<20:59, 89.93s/it]
+Traceback (most recent call last):
+  File "/home/c-tadimeti/language-model-basics/cs336_systems/benchmarking_script.py", line 227, in <module>
+    profile(cfg)
+    ~~~~~~~^^^^^
+  File "/home/c-tadimeti/language-model-basics/cs336_systems/benchmarking_script.py", line 101, in profile
+    logits = model(xb)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 574, in _fn
+    return fn(*args, **kwargs)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 383, in forward
+    def forward(self, in_indices: torch.Tensor) -> torch.Tensor:
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 745, in _fn
+    return fn(*args, **kwargs)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/aot_autograd.py", line 1184, in forward
+    return compiled_fn(full_args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 310, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+        compiled_fn, args_, disable_amp=disable_amp, steal_args=True
+    )
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 126, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 100, in g
+    return f(*args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/autograd/function.py", line 575, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 1585, in forward
+    fw_outs = call_func_at_runtime_with_args(
+        CompiledFunction.compiled_fw,
+        args,
+        disable_amp=disable_amp,
+    )
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 126, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 490, in wrapper
+    return compiled_fn(runtime_args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 672, in inner_fn
+    outs = compiled_fn(args)
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/output_code.py", line 466, in __call__
+    return self.current_callable(inputs)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/utils.py", line 2128, in run
+    return model(new_inputs)
+  File "/tmp/torchinductor_c-tadimeti/vx/cvxgga7nyak3qrxpn234euo3qrsl26crtrcaokdwmyz34enln4ct.py", line 2981, in call
+    buf505 = empty_strided_cuda((1, 10240, 4096), (41943040, 4096, 1), torch.float32)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 160.00 MiB. GPU 0 has a total capacity of 79.19 GiB of which 75.06 MiB is free. Including non-PyTorch memory, this process has 79.11 GiB memory in use. Of the allocated memory 68.99 GiB is allocated by PyTorch, and 9.39 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
