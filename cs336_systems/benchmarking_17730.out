@@ -1,0 +1,106 @@
+Training on device: cuda
+Average forward time: 0.005561107164248824
+Stdev forward time: 1.948443749902663e-05
+Average backward time: 0.0104687066283077
+Stdev backward time: 1.83657803081236e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx128_d768_ff3072_l12_h12.pkl
+Training on device: cuda
+Average forward time: 0.008678696025162936
+Stdev forward time: 1.3667266615248985e-05
+Average backward time: 0.017348325019702314
+Stdev backward time: 2.343176321529664e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx256_d768_ff3072_l12_h12.pkl
+Training on device: cuda
+Average forward time: 0.01591893136501312
+Stdev forward time: 2.8240603319087557e-05
+Average backward time: 0.030730475159361958
+Stdev backward time: 3.1441314461220355e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx512_d768_ff3072_l12_h12.pkl
+Training on device: cuda
+Average forward time: 0.031745683122426274
+Stdev forward time: 1.5655931915451073e-05
+Average backward time: 0.06490839617326856
+Stdev backward time: 1.281718792205072e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx1024_d768_ff3072_l12_h12.pkl
+Training on device: cuda
+Average forward time: 0.014138269610702992
+Stdev forward time: 2.2207477343845497e-05
+Average backward time: 0.02721402677707374
+Stdev backward time: 0.00134726016454556
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx128_d1024_ff4096_l24_h16.pkl
+Training on device: cuda
+Average forward time: 0.023878280771896243
+Stdev forward time: 1.852529382741713e-05
+Average backward time: 0.04645719723775983
+Stdev backward time: 1.2538349557962258e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx256_d1024_ff4096_l24_h16.pkl
+Training on device: cuda
+Average forward time: 0.04519444680772722
+Stdev forward time: 0.00010246506091683733
+Average backward time: 0.09007409834302962
+Stdev backward time: 0.0001239840802107258
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx512_d1024_ff4096_l24_h16.pkl
+Training on device: cuda
+Average forward time: 0.09432072774507105
+Stdev forward time: 0.00020713631618938695
+Average backward time: 0.19032169883139433
+Stdev backward time: 6.76999468832683e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx1024_d1024_ff4096_l24_h16.pkl
+Training on device: cuda
+Average forward time: 0.02981902128085494
+Stdev forward time: 2.7064994808761488e-05
+Average backward time: 0.061629497027024624
+Stdev backward time: 3.534167410049674e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx128_d1280_ff5120_l36_h20.pkl
+Training on device: cuda
+Average forward time: 0.05912646343931556
+Stdev forward time: 9.81567627076534e-05
+Average backward time: 0.11474834303371609
+Stdev backward time: 0.00011485354138296006
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx256_d1280_ff5120_l36_h20.pkl
+Training on device: cuda
+Average forward time: 0.10649028378538787
+Stdev forward time: 5.375563338191362e-05
+Average backward time: 0.2170645181555301
+Stdev backward time: 8.731921620799391e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx512_d1280_ff5120_l36_h20.pkl
+Training on device: cuda
+Average forward time: 0.2211230314336717
+Stdev forward time: 0.00012846631379768468
+Average backward time: 0.4354956351686269
+Stdev backward time: 0.00035331033976522444
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx1024_d1280_ff5120_l36_h20.pkl
+Training on device: cuda
+Average forward time: 0.05544340508058667
+Stdev forward time: 9.79362633709394e-05
+Average backward time: 0.11160568054765463
+Stdev backward time: 5.922146576079024e-05
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx128_d1600_ff6400_l48_h25.pkl
+Training on device: cuda
+Average forward time: 0.10712097217328846
+Stdev forward time: 0.0010419230946449437
+Average backward time: 0.21230332795530557
+Stdev backward time: 0.0004634997843199188
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx256_d1600_ff6400_l48_h25.pkl
+Training on device: cuda
+Average forward time: 0.2211769045330584
+Stdev forward time: 0.00045419136121726487
+Average backward time: 0.4275801110547036
+Stdev backward time: 0.0006898233015669108
+Training complete at step 10
+Results saved to benchmarking_results/bench_ctx512_d1600_ff6400_l48_h25.pkl
+Training on device: cuda

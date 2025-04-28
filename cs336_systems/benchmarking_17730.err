@@ -1,0 +1,83 @@
+   Building cs336-systems @ file:///home/c-tadimeti/language-model-basics
+   Building cs336-basics @ file:///home/c-tadimeti/language-model-basics/cs336-basics
+      Built cs336-basics @ file:///home/c-tadimeti/language-model-basics/cs336-basics
+      Built cs336-systems @ file:///home/c-tadimeti/language-model-basics
+Uninstalled 12 packages in 75ms
+Installed 25 packages in 93ms
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:24<05:46, 24.79s/it] 13%|█▎        | 2/15 [00:44<04:42, 21.76s/it] 47%|████▋     | 7/15 [00:44<00:33,  4.20s/it] 67%|██████▋   | 10/15 [00:44<00:22,  4.46s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:23<05:33, 23.84s/it] 13%|█▎        | 2/15 [00:43<04:34, 21.13s/it] 40%|████      | 6/15 [00:43<00:43,  4.87s/it] 67%|██████▋   | 10/15 [00:43<00:11,  2.34s/it] 67%|██████▋   | 10/15 [00:43<00:21,  4.33s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:24<05:40, 24.34s/it] 13%|█▎        | 2/15 [00:44<04:42, 21.74s/it] 27%|██▋       | 4/15 [00:44<01:29,  8.14s/it] 40%|████      | 6/15 [00:44<00:38,  4.32s/it] 53%|█████▎    | 8/15 [00:44<00:18,  2.60s/it] 67%|██████▋   | 10/15 [00:44<00:08,  1.67s/it] 67%|██████▋   | 10/15 [00:44<00:22,  4.47s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:24<05:46, 24.77s/it] 13%|█▎        | 2/15 [00:44<04:40, 21.59s/it] 20%|██        | 3/15 [00:44<02:21, 11.78s/it] 27%|██▋       | 4/15 [00:44<01:18,  7.17s/it] 33%|███▎      | 5/15 [00:44<00:46,  4.62s/it] 40%|████      | 6/15 [00:44<00:27,  3.08s/it] 47%|████▋     | 7/15 [00:44<00:16,  2.11s/it] 53%|█████▎    | 8/15 [00:44<00:10,  1.47s/it] 60%|██████    | 9/15 [00:44<00:06,  1.04s/it] 67%|██████▋   | 10/15 [00:44<00:03,  1.33it/s] 67%|██████▋   | 10/15 [00:44<00:22,  4.50s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:41<09:34, 41.03s/it] 13%|█▎        | 2/15 [01:17<08:21, 38.55s/it] 27%|██▋       | 4/15 [01:17<02:38, 14.42s/it] 40%|████      | 6/15 [01:18<01:08,  7.63s/it] 53%|█████▎    | 8/15 [01:18<00:32,  4.58s/it] 67%|██████▋   | 10/15 [01:18<00:14,  2.93s/it] 67%|██████▋   | 10/15 [01:18<00:39,  7.83s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:41<09:36, 41.16s/it] 13%|█▎        | 2/15 [01:18<08:28, 39.09s/it] 27%|██▋       | 4/15 [01:18<02:40, 14.64s/it] 40%|████      | 6/15 [01:19<01:09,  7.76s/it] 53%|█████▎    | 8/15 [01:19<00:32,  4.67s/it] 67%|██████▋   | 10/15 [01:19<00:14,  3.00s/it] 67%|██████▋   | 10/15 [01:19<00:39,  7.95s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:40<09:32, 40.93s/it] 13%|█▎        | 2/15 [01:17<08:22, 38.65s/it] 20%|██        | 3/15 [01:18<04:12, 21.07s/it] 27%|██▋       | 4/15 [01:18<02:20, 12.81s/it] 33%|███▎      | 5/15 [01:18<01:22,  8.25s/it] 40%|████      | 6/15 [01:18<00:49,  5.49s/it] 47%|████▋     | 7/15 [01:18<00:29,  3.75s/it] 53%|█████▎    | 8/15 [01:18<00:18,  2.60s/it] 60%|██████    | 9/15 [01:19<00:11,  1.84s/it] 67%|██████▋   | 10/15 [01:19<00:06,  1.32s/it] 67%|██████▋   | 10/15 [01:19<00:39,  7.92s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:41<09:35, 41.11s/it] 13%|█▎        | 2/15 [01:18<08:26, 38.98s/it] 20%|██        | 3/15 [01:18<04:15, 21.32s/it] 27%|██▋       | 4/15 [01:19<02:23, 13.02s/it] 33%|███▎      | 5/15 [01:19<01:24,  8.44s/it] 40%|████      | 6/15 [01:19<00:51,  5.67s/it] 47%|████▋     | 7/15 [01:20<00:31,  3.92s/it] 53%|█████▎    | 8/15 [01:20<00:19,  2.77s/it] 60%|██████    | 9/15 [01:20<00:11,  2.00s/it] 67%|██████▋   | 10/15 [01:21<00:07,  1.47s/it] 67%|██████▋   | 10/15 [01:21<00:40,  8.10s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:58<13:39, 58.53s/it] 13%|█▎        | 2/15 [01:53<12:15, 56.59s/it] 20%|██        | 3/15 [01:53<06:09, 30.81s/it] 27%|██▋       | 4/15 [01:54<03:25, 18.70s/it] 33%|███▎      | 5/15 [01:54<02:00, 12.00s/it] 40%|████      | 6/15 [01:54<01:11,  7.97s/it] 47%|████▋     | 7/15 [01:54<00:43,  5.40s/it] 53%|█████▎    | 8/15 [01:54<00:26,  3.73s/it] 60%|██████    | 9/15 [01:54<00:15,  2.60s/it] 67%|██████▋   | 10/15 [01:54<00:09,  1.84s/it] 67%|██████▋   | 10/15 [01:54<00:57, 11.48s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:57<13:19, 57.07s/it] 13%|█▎        | 2/15 [01:51<12:01, 55.49s/it] 20%|██        | 3/15 [01:51<06:03, 30.25s/it] 27%|██▋       | 4/15 [01:51<03:22, 18.39s/it] 33%|███▎      | 5/15 [01:52<01:58, 11.84s/it] 40%|████      | 6/15 [01:52<01:10,  7.88s/it] 47%|████▋     | 7/15 [01:52<00:43,  5.38s/it] 53%|█████▎    | 8/15 [01:52<00:26,  3.73s/it] 60%|██████    | 9/15 [01:52<00:15,  2.63s/it] 67%|██████▋   | 10/15 [01:53<00:09,  1.89s/it] 67%|██████▋   | 10/15 [01:53<00:56, 11.32s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:57<13:25, 57.55s/it] 13%|█▎        | 2/15 [01:52<12:06, 55.92s/it] 20%|██        | 3/15 [01:52<06:06, 30.55s/it] 27%|██▋       | 4/15 [01:53<03:24, 18.63s/it] 33%|███▎      | 5/15 [01:53<02:00, 12.04s/it] 40%|████      | 6/15 [01:53<01:12,  8.07s/it] 47%|████▋     | 7/15 [01:54<00:44,  5.55s/it] 53%|█████▎    | 8/15 [01:54<00:27,  3.90s/it] 60%|██████    | 9/15 [01:54<00:16,  2.79s/it] 67%|██████▋   | 10/15 [01:55<00:10,  2.04s/it] 67%|██████▋   | 10/15 [01:55<00:57, 11.52s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:58<13:44, 58.91s/it] 13%|█▎        | 2/15 [01:54<12:23, 57.21s/it] 20%|██        | 3/15 [01:55<06:16, 31.40s/it] 27%|██▋       | 4/15 [01:56<03:32, 19.28s/it] 33%|███▎      | 5/15 [01:57<02:05, 12.58s/it] 40%|████      | 6/15 [01:57<01:16,  8.54s/it] 47%|████▋     | 7/15 [01:58<00:47,  5.97s/it] 53%|█████▎    | 8/15 [01:59<00:30,  4.29s/it] 60%|██████    | 9/15 [01:59<00:18,  3.17s/it] 67%|██████▋   | 10/15 [02:00<00:12,  2.40s/it] 67%|██████▋   | 10/15 [02:00<01:00, 12.05s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [01:17<17:58, 77.03s/it] 13%|█▎        | 2/15 [02:31<16:19, 75.33s/it] 20%|██        | 3/15 [02:31<08:12, 41.04s/it] 27%|██▋       | 4/15 [02:31<04:34, 24.94s/it] 33%|███▎      | 5/15 [02:31<02:40, 16.03s/it] 40%|████      | 6/15 [02:32<01:35, 10.67s/it] 47%|████▋     | 7/15 [02:32<00:58,  7.26s/it] 53%|█████▎    | 8/15 [02:32<00:35,  5.03s/it] 60%|██████    | 9/15 [02:32<00:21,  3.53s/it] 67%|██████▋   | 10/15 [02:33<00:12,  2.52s/it] 67%|██████▋   | 10/15 [02:33<01:16, 15.31s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [01:16<17:56, 76.87s/it] 13%|█▎        | 2/15 [02:30<16:15, 75.04s/it] 20%|██        | 3/15 [02:31<08:11, 40.96s/it] 27%|██▋       | 4/15 [02:31<04:34, 24.94s/it] 33%|███▎      | 5/15 [02:31<02:40, 16.09s/it] 40%|████      | 6/15 [02:32<01:36, 10.76s/it] 47%|████▋     | 7/15 [02:32<00:58,  7.37s/it] 53%|█████▎    | 8/15 [02:33<00:36,  5.15s/it] 60%|██████    | 9/15 [02:33<00:21,  3.67s/it] 67%|██████▋   | 10/15 [02:33<00:13,  2.66s/it] 67%|██████▋   | 10/15 [02:33<01:16, 15.38s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [01:16<17:56, 76.87s/it] 13%|█▎        | 2/15 [02:30<16:13, 74.86s/it] 20%|██        | 3/15 [02:31<08:12, 41.01s/it] 27%|██▋       | 4/15 [02:31<04:36, 25.10s/it] 33%|███▎      | 5/15 [02:32<02:43, 16.31s/it] 40%|████      | 6/15 [02:33<01:39, 11.01s/it] 47%|████▋     | 7/15 [02:33<01:01,  7.64s/it] 53%|█████▎    | 8/15 [02:34<00:38,  5.44s/it] 60%|██████    | 9/15 [02:35<00:23,  3.96s/it] 67%|██████▋   | 10/15 [02:36<00:14,  2.96s/it] 67%|██████▋   | 10/15 [02:36<01:18, 15.61s/it]
+Exception ignored in: <_io.BufferedWriter name=49>
+BrokenPipeError: [Errno 32] Broken pipe
+  0%|          | 0/15 [00:00<?, ?it/s]/scratch/c-tadimeti/uv-envs/language-model-basics/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
