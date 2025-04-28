@@ -170,14 +170,12 @@ def profile(cfg):
 
 if __name__ == "__main__":
     # usage: python script.py train --config config.yaml
-    breakpoint()
-    if len(sys.argv) >= 3 and sys.argv[1]=='--config':
+    if len(sys.argv) >= 2 and sys.argv[1]=='--config':
         mode = sys.argv[1]
-        cfg_path = sys.argv[3]
+        cfg_path = sys.argv[2]
         with open(f"systems_configs/{cfg_path}") as f:
             cfg = yaml.safe_load(f)
-        
-        # argv:  uv run cs336_systems/benchmarking_script.py --config becnhmarking.yaml key1=val1 key2=val2 ...
+        # argv:  uv run benchmarking_script.py --config benchmarking.yaml key1=val1 key2=val2 ...
         for override in sys.argv[3:]:
             if "=" not in override:
                 raise ValueError(f"Bad override '{override}', expected key=value")
