@@ -186,7 +186,7 @@ def profile(cfg):
     }
 
     # Create directory to save results if it doesn't exist
-    results_dir = 'benchmarking_results'
+    results_dir = 'benchmarking_results_warmup_one'
     os.makedirs(results_dir, exist_ok=True)
 
     # Create filename with model parameters

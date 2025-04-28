@@ -41,6 +41,6 @@ val_interval: 500
 save_interval: 5000000000
 
 # Profiling parameters
-profile_warmup: 5
+profile_warmup: 1
 profile_measurement_steps: 10
 profile_component: "forward/backward" # either "forward" or "forward/backward"
