@@ -164,12 +164,13 @@ def profile(cfg):
             
             it += 1
             pbar.update(1)
-
+    print(f"Total elapsed time for {profile_measurement_steps}: {elapsed_time}")
     print(f"Training complete at step {it}")
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     # usage: python script.py train --config config.yaml
+    breakpoint()
     if len(sys.argv) >= 3 and sys.argv[1]=='--config':
         mode = sys.argv[1]
         cfg_path = sys.argv[3]
