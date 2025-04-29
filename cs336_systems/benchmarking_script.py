@@ -125,7 +125,7 @@ def profile(cfg):
             it += 1
             pbar.update(1)
         
-        while it < profile_warmup profile_measurement_steps:
+        while it < profile_warmup+ profile_measurement_steps:
             # generate random batch of data
             xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
             yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)

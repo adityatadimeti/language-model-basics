@@ -5,29 +5,31 @@
 #SBATCH --output=benchmarking_%j.out
 #SBATCH --error=benchmarking_%j.err
 #SBATCH --gpus=1
+set -euo pipefail
 
-# Run commands
-uv run benchmarking_script.py --config benchmarking.yaml context_length=128 d_model=768 d_ff=3072 num_layers=12 num_heads=12
-uv run benchmarking_script.py --config benchmarking.yaml context_length=256 d_model=768 d_ff=3072 num_layers=12 num_heads=12
-uv run benchmarking_script.py --config benchmarking.yaml context_length=512 d_model=768 d_ff=3072 num_layers=12 num_heads=12
-uv run benchmarking_script.py --config benchmarking.yaml context_length=1024 d_model=768 d_ff=3072 num_layers=12 num_heads=12
+# 1) Define “sweeps”:
+declare -a ctxs=(128 256 512 1024)
+# key = d_model, values = d_ff, num_layers, num_heads
+declare -A d_ff=(   [768]=3072   [1024]=4096   [1280]=5120   [1600]=6400   [2560]=10240 )
+declare -A layers=( [768]=12     [1024]=24     [1280]=36     [1600]=48     [2560]=32    )
+declare -A heads=(  [768]=12     [1024]=16     [1280]=20     [1600]=25     [2560]=32    )
+declare -a d_models=(768 1024 1280 1600 2560)
 
-uv run benchmarking_script.py --config benchmarking.yaml context_length=128 d_model=1024 d_ff=4096 num_layers=24 num_heads=16
-uv run benchmarking_script.py --config benchmarking.yaml context_length=256 d_model=1024 d_ff=4096 num_layers=24 num_heads=16
-uv run benchmarking_script.py --config benchmarking.yaml context_length=512 d_model=1024 d_ff=4096 num_layers=24 num_heads=16
-uv run benchmarking_script.py --config benchmarking.yaml context_length=1024 d_model=1024 d_ff=4096 num_layers=24 num_heads=16
+# 2) Loop and run nsys with a param-derived output name:
+for d in "${d_models[@]}"; do
+  for ctx in "${ctxs[@]}"; do
+    f=${d_ff[$d]}
+    nl=${layers[$d]}
+    nh=${heads[$d]}
+    out="nsys_ctx${ctx}_d${d}_ff${f}_l${nl}_h${nh}.qdrep"
 
-uv run benchmarking_script.py --config benchmarking.yaml context_length=128 d_model=1280 d_ff=5120 num_layers=36 num_heads=20
-uv run benchmarking_script.py --config benchmarking.yaml context_length=256 d_model=1280 d_ff=5120 num_layers=36 num_heads=20
-uv run benchmarking_script.py --config benchmarking.yaml context_length=512 d_model=1280 d_ff=5120 num_layers=36 num_heads=20
-uv run benchmarking_script.py --config benchmarking.yaml context_length=1024 d_model=1280 d_ff=5120 num_layers=36 num_heads=20
-
-uv run benchmarking_script.py --config benchmarking.yaml context_length=128 d_model=1600 d_ff=6400 num_layers=48 num_heads=25
-uv run benchmarking_script.py --config benchmarking.yaml context_length=256 d_model=1600 d_ff=6400 num_layers=48 num_heads=25
-uv run benchmarking_script.py --config benchmarking.yaml context_length=512 d_model=1600 d_ff=6400 num_layers=48 num_heads=25
-uv run benchmarking_script.py --config benchmarking.yaml context_length=1024 d_model=1600 d_ff=6400 num_layers=48 num_heads=25
-
-uv run benchmarking_script.py --config benchmarking.yaml context_length=128 d_model=2560 d_ff=10240 num_layers=32 num_heads=32
-uv run benchmarking_script.py --config benchmarking.yaml context_length=256 d_model=2560 d_ff=10240 num_layers=32 num_heads=32
-uv run benchmarking_script.py --config benchmarking.yaml context_length=512 d_model=2560 d_ff=10240 num_layers=32 num_heads=32
-uv run benchmarking_script.py --config benchmarking.yaml context_length=1024 d_model=2560 d_ff=10240 num_layers=32 num_heads=32
+    uv run nsys profile -o "${out}" \
+      python benchmarking_script.py \
+        --config benchmarking.yaml \
+        context_length=${ctx} \
+        d_model=${d} \
+        d_ff=${f} \
+        num_layers=${nl} \
+        num_heads=${nh}
+  done
+done
