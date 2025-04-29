@@ -48,11 +48,11 @@ def load_all_benchmarks(directory):
     return pd.DataFrame(records)
 
 # Load both sets
-no_warmup_path = "benchmarking_results_no_warmup"
-warmup_path = "benchmarking_results_warmup"
+#no_warmup_path = "benchmarking_results_no_warmup"
+warmup_path = "benchmarking_results_warmup_one"
 
 # Load both sets
-df_no_warmup = load_all_benchmarks(no_warmup_path)
+#df_no_warmup = load_all_benchmarks(no_warmup_path)
 df_warmup    = load_all_benchmarks(warmup_path)
 
 def format_time(mean, std):
@@ -70,8 +70,8 @@ def df_to_latex(df):
     return table.to_latex(index=False, escape=False, column_format="|c|c|c|c|")
 
 # Now generate LaTeX for each
-latex_no_warmup = df_to_latex(df_no_warmup)
+#latex_no_warmup = df_to_latex(df_no_warmup)
 latex_warmup    = df_to_latex(df_warmup)
 
-print("% no warmup\n", latex_no_warmup)
+#print("% no warmup\n", latex_no_warmup)
 print("% with warmup\n",    latex_warmup)

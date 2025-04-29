@@ -4,9 +4,9 @@
 
 # Model architecture parameters
 vocab_size: 10000
-context_length: 256
+context_length: 128
 
-d_model: 769
+d_model: 768
 num_heads: 32
 num_layers: 12
 d_ff: 3072
@@ -41,6 +41,6 @@ val_interval: 500
 save_interval: 5000000000
 
 # Profiling parameters
-profile_warmup: 1
+profile_warmup: 5
 profile_measurement_steps: 10
 profile_component: "forward/backward" # either "forward" or "forward/backward"

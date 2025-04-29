@@ -16,6 +16,7 @@ import timeit
 from timeit import Timer
 import numpy as np
 import pickle
+import torch.cuda.nvtx as nvtx
 
 def profile(cfg):
     # Hyperparameters   
@@ -124,18 +125,14 @@ def profile(cfg):
             it += 1
             pbar.update(1)
         
-        forward_times = []
-        backward_times = []
-        while it < profile_measurement_steps:
+        while it < profile_warmup profile_measurement_steps:
             # generate random batch of data
             xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
             yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
 
-            start_time = timeit.default_timer()
-            logits = model(xb)
+            with nvtx.range("Model forward pass"):
+                logits = model(xb)
             torch.cuda.synchronize()
-            end_time = timeit.default_timer()
-            forward_times.append(end_time - start_time)
 
             B, T, V = logits.shape
 
@@ -151,53 +148,53 @@ def profile(cfg):
             )
             loss = loss / gradient_accum
 
-            if profile_component == "forward/backward":
-                start_time = timeit.default_timer()
+            with nvtx.range("Model backward pass"):
                 loss.backward()
-                torch.cuda.synchronize()
-                end_time = timeit.default_timer()
-                backward_times.append(end_time - start_time)
+            torch.cuda.synchronize()
 
 
             if max_grad_norm > 0:
                 gradient_clipping(model.parameters(), max_grad_norm)
-            optimizer.step()
+
+            with nvtx.range("Optimizer step"):
+                optimizer.step()
+            torch.cuda.synchronize()
             optimizer.zero_grad()
 
             
             it += 1
             pbar.update(1)
-    print(f"Average forward time: {np.mean(forward_times)}")
-    print(f"Stdev forward time: {np.std(forward_times)}")
+    #print(f"Average forward time: {np.mean(forward_times)}")
+    #print(f"Stdev forward time: {np.std(forward_times)}")
 
-    print(f"Average backward time: {np.mean(backward_times)}")
-    print(f"Stdev backward time: {np.std(backward_times)}")
+    #print(f"Average backward time: {np.mean(backward_times)}")
+    #print(f"Stdev backward time: {np.std(backward_times)}")
 
     print(f"Training complete at step {it}")
 
     # Save times to numpy file
-    results = {
-        'forward_times': np.array(forward_times),
-        'backward_times': np.array(backward_times),
-        'mean_forward': np.mean(forward_times),
-        'std_forward': np.std(forward_times),
-        'mean_backward': np.mean(backward_times),
-        'std_backward': np.std(backward_times)
-    }
+    # results = {
+    #     'forward_times': np.array(forward_times),
+    #     'backward_times': np.array(backward_times),
+    #     'mean_forward': np.mean(forward_times),
+    #     'std_forward': np.std(forward_times),
+    #     'mean_backward': np.mean(backward_times),
+    #     'std_backward': np.std(backward_times)
+    # }
 
     # Create directory to save results if it doesn't exist
-    results_dir = 'benchmarking_results_warmup_one'
-    os.makedirs(results_dir, exist_ok=True)
+    # results_dir = 'benchmarking_results_warmup_one'
+    # os.makedirs(results_dir, exist_ok=True)
 
-    # Create filename with model parameters
-    filename = f"bench_ctx{context_length}_d{d_model}_ff{d_ff}_l{num_layers}_h{num_heads}.pkl"
-    filepath = os.path.join(results_dir, filename)
+    # # Create filename with model parameters
+    # filename = f"bench_ctx{context_length}_d{d_model}_ff{d_ff}_l{num_layers}_h{num_heads}.pkl"
+    # filepath = os.path.join(results_dir, filename)
 
-    # Save results to pickle file
-    with open(filepath, 'wb') as f:
-        pickle.dump(results, f)
+    # # Save results to pickle file
+    # with open(filepath, 'wb') as f:
+    #     pickle.dump(results, f)
 
-    print(f"Results saved to {filepath}")
+    # print(f"Results saved to {filepath}")
 
 
 
