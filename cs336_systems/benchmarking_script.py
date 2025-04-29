@@ -127,43 +127,44 @@ def profile(cfg):
         
         while it < profile_warmup+ profile_measurement_steps:
             # generate random batch of data
-            xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
-            yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
+            with nvtx.range("Training step"):
+                xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
+                yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
 
-            with nvtx.range("Model forward pass"):
-                logits = model(xb)
-            torch.cuda.synchronize()
+                with nvtx.range("Model forward pass"):
+                    logits = model(xb)
+                torch.cuda.synchronize()
 
-            B, T, V = logits.shape
+                B, T, V = logits.shape
 
-            # LR schedule
-            lr = learning_rate_schedule(it, max_lr, min_lr, warmup_cosine_iters, cosine_cycle_iters)
-            for group in optimizer.param_groups:
-                group['lr'] = lr
+                # LR schedule
+                lr = learning_rate_schedule(it, max_lr, min_lr, warmup_cosine_iters, cosine_cycle_iters)
+                for group in optimizer.param_groups:
+                    group['lr'] = lr
 
-            # Loss and update
-            loss = cross_entropy(
-                logits.view(-1, V),          
-                yb.reshape(-1)               
-            )
-            loss = loss / gradient_accum
+                # Loss and update
+                loss = cross_entropy(
+                    logits.view(-1, V),          
+                    yb.reshape(-1)               
+                )
+                loss = loss / gradient_accum
 
-            with nvtx.range("Model backward pass"):
-                loss.backward()
-            torch.cuda.synchronize()
+                with nvtx.range("Model backward pass"):
+                    loss.backward()
+                torch.cuda.synchronize()
 
 
-            if max_grad_norm > 0:
-                gradient_clipping(model.parameters(), max_grad_norm)
+                if max_grad_norm > 0:
+                    gradient_clipping(model.parameters(), max_grad_norm)
 
-            with nvtx.range("Optimizer step"):
-                optimizer.step()
-            torch.cuda.synchronize()
-            optimizer.zero_grad()
+                with nvtx.range("Optimizer step"):
+                    optimizer.step()
+                torch.cuda.synchronize()
+                optimizer.zero_grad()
 
-            
-            it += 1
-            pbar.update(1)
+                
+                it += 1
+                pbar.update(1)
     #print(f"Average forward time: {np.mean(forward_times)}")
     #print(f"Stdev forward time: {np.std(forward_times)}")
 
