@@ -1,0 +1,170 @@
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<01:05,  4.65s/it] 13%|█▎        | 2/15 [00:05<00:30,  2.37s/it] 33%|███▎      | 5/15 [00:05<00:06,  1.43it/s] 53%|█████▎    | 8/15 [00:05<00:02,  2.75it/s] 73%|███████▎  | 11/15 [00:05<00:00,  4.42it/s] 93%|█████████▎| 14/15 [00:05<00:00,  6.47it/s]100%|██████████| 15/15 [00:05<00:00,  2.55it/s]
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx128_d768_ff3072_l12_h12.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<01:02,  4.47s/it] 13%|█▎        | 2/15 [00:05<00:29,  2.31s/it] 33%|███▎      | 5/15 [00:05<00:06,  1.46it/s] 53%|█████▎    | 8/15 [00:05<00:02,  2.79it/s] 73%|███████▎  | 11/15 [00:05<00:00,  4.43it/s] 93%|█████████▎| 14/15 [00:05<00:00,  6.38it/s]100%|██████████| 15/15 [00:05<00:00,  2.59it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx256_d768_ff3072_l12_h12.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<00:58,  4.18s/it] 13%|█▎        | 2/15 [00:04<00:28,  2.18s/it] 27%|██▋       | 4/15 [00:05<00:09,  1.17it/s] 40%|████      | 6/15 [00:05<00:04,  2.09it/s] 53%|█████▎    | 8/15 [00:05<00:02,  3.22it/s] 67%|██████▋   | 10/15 [00:05<00:01,  4.54it/s] 80%|████████  | 12/15 [00:05<00:00,  6.03it/s] 93%|█████████▎| 14/15 [00:05<00:00,  7.60it/s]100%|██████████| 15/15 [00:05<00:00,  2.60it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx512_d768_ff3072_l12_h12.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<00:56,  4.02s/it] 13%|█▎        | 2/15 [00:04<00:27,  2.15s/it] 20%|██        | 3/15 [00:04<00:14,  1.22s/it] 27%|██▋       | 4/15 [00:05<00:08,  1.28it/s] 33%|███▎      | 5/15 [00:05<00:05,  1.85it/s] 40%|████      | 6/15 [00:05<00:03,  2.52it/s] 47%|████▋     | 7/15 [00:05<00:02,  3.29it/s] 53%|█████▎    | 8/15 [00:05<00:01,  4.11it/s] 60%|██████    | 9/15 [00:05<00:01,  4.92it/s] 67%|██████▋   | 10/15 [00:05<00:00,  5.69it/s] 73%|███████▎  | 11/15 [00:05<00:00,  6.37it/s] 80%|████████  | 12/15 [00:06<00:00,  6.95it/s] 87%|████████▋ | 13/15 [00:06<00:00,  7.41it/s] 93%|█████████▎| 14/15 [00:06<00:00,  7.77it/s]100%|██████████| 15/15 [00:06<00:00,  8.04it/s]100%|██████████| 15/15 [00:06<00:00,  2.36it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx1024_d768_ff3072_l12_h12.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<01:01,  4.38s/it] 13%|█▎        | 2/15 [00:05<00:29,  2.29s/it] 27%|██▋       | 4/15 [00:05<00:09,  1.11it/s] 40%|████      | 6/15 [00:05<00:04,  1.96it/s] 53%|█████▎    | 8/15 [00:05<00:02,  2.99it/s] 67%|██████▋   | 10/15 [00:05<00:01,  4.17it/s] 80%|████████  | 12/15 [00:05<00:00,  5.47it/s] 93%|█████████▎| 14/15 [00:06<00:00,  6.76it/s]100%|██████████| 15/15 [00:06<00:00,  2.43it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx128_d1024_ff4096_l24_h16.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<00:57,  4.13s/it] 13%|█▎        | 2/15 [00:04<00:28,  2.19s/it] 27%|██▋       | 4/15 [00:05<00:09,  1.14it/s] 40%|████      | 6/15 [00:05<00:04,  1.96it/s] 47%|████▋     | 7/15 [00:05<00:03,  2.45it/s] 53%|█████▎    | 8/15 [00:05<00:02,  3.05it/s] 60%|██████    | 9/15 [00:05<00:01,  3.76it/s] 67%|██████▋   | 10/15 [00:05<00:01,  4.56it/s] 73%|███████▎  | 11/15 [00:05<00:00,  5.41it/s] 80%|████████  | 12/15 [00:05<00:00,  6.24it/s] 87%|████████▋ | 13/15 [00:06<00:00,  6.97it/s] 93%|█████████▎| 14/15 [00:06<00:00,  7.64it/s]100%|██████████| 15/15 [00:06<00:00,  8.17it/s]100%|██████████| 15/15 [00:06<00:00,  2.39it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx256_d1024_ff4096_l24_h16.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<00:59,  4.25s/it] 13%|█▎        | 2/15 [00:05<00:29,  2.27s/it] 20%|██        | 3/15 [00:05<00:15,  1.31s/it] 27%|██▋       | 4/15 [00:05<00:09,  1.17it/s] 33%|███▎      | 5/15 [00:05<00:06,  1.65it/s] 40%|████      | 6/15 [00:05<00:04,  2.19it/s] 47%|████▋     | 7/15 [00:05<00:02,  2.77it/s] 53%|█████▎    | 8/15 [00:06<00:02,  3.34it/s] 60%|██████    | 9/15 [00:06<00:01,  3.89it/s] 67%|██████▋   | 10/15 [00:06<00:01,  4.37it/s] 73%|███████▎  | 11/15 [00:06<00:00,  4.78it/s] 80%|████████  | 12/15 [00:06<00:00,  5.11it/s] 87%|████████▋ | 13/15 [00:06<00:00,  5.36it/s] 93%|█████████▎| 14/15 [00:07<00:00,  5.54it/s]100%|██████████| 15/15 [00:07<00:00,  5.69it/s]100%|██████████| 15/15 [00:07<00:00,  2.06it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx512_d1024_ff4096_l24_h16.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<01:02,  4.43s/it] 13%|█▎        | 2/15 [00:05<00:31,  2.43s/it] 20%|██        | 3/15 [00:05<00:17,  1.47s/it] 27%|██▋       | 4/15 [00:06<00:11,  1.02s/it] 33%|███▎      | 5/15 [00:06<00:07,  1.31it/s] 40%|████      | 6/15 [00:06<00:05,  1.63it/s] 47%|████▋     | 7/15 [00:07<00:04,  1.92it/s] 53%|█████▎    | 8/15 [00:07<00:03,  2.18it/s] 60%|██████    | 9/15 [00:07<00:02,  2.40it/s] 67%|██████▋   | 10/15 [00:08<00:01,  2.58it/s] 73%|███████▎  | 11/15 [00:08<00:01,  2.72it/s] 80%|████████  | 12/15 [00:08<00:01,  2.82it/s] 87%|████████▋ | 13/15 [00:09<00:00,  2.89it/s] 93%|█████████▎| 14/15 [00:09<00:00,  2.94it/s]100%|██████████| 15/15 [00:09<00:00,  2.99it/s]100%|██████████| 15/15 [00:09<00:00,  1.55it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx1024_d1024_ff4096_l24_h16.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:04<00:59,  4.27s/it] 13%|█▎        | 2/15 [00:05<00:29,  2.27s/it] 20%|██        | 3/15 [00:05<00:15,  1.30s/it] 27%|██▋       | 4/15 [00:05<00:09,  1.18it/s] 33%|███▎      | 5/15 [00:05<00:05,  1.68it/s] 40%|████      | 6/15 [00:05<00:04,  2.24it/s] 47%|████▋     | 7/15 [00:05<00:02,  2.85it/s] 53%|█████▎    | 8/15 [00:06<00:02,  3.48it/s] 60%|██████    | 9/15 [00:06<00:01,  4.09it/s] 67%|██████▋   | 10/15 [00:06<00:01,  4.64it/s] 73%|███████▎  | 11/15 [00:06<00:00,  5.12it/s] 80%|████████  | 12/15 [00:06<00:00,  5.49it/s] 87%|████████▋ | 13/15 [00:06<00:00,  5.80it/s] 93%|█████████▎| 14/15 [00:06<00:00,  6.03it/s]100%|██████████| 15/15 [00:07<00:00,  6.21it/s]100%|██████████| 15/15 [00:07<00:00,  2.11it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx128_d1280_ff5120_l36_h20.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:05<01:11,  5.10s/it] 13%|█▎        | 2/15 [00:06<00:34,  2.65s/it] 20%|██        | 3/15 [00:06<00:18,  1.54s/it] 27%|██▋       | 4/15 [00:06<00:11,  1.02s/it] 33%|███▎      | 5/15 [00:06<00:07,  1.36it/s] 40%|████      | 6/15 [00:06<00:05,  1.76it/s] 47%|████▋     | 7/15 [00:07<00:03,  2.19it/s] 53%|█████▎    | 8/15 [00:07<00:02,  2.60it/s] 60%|██████    | 9/15 [00:07<00:02,  2.97it/s] 67%|██████▋   | 10/15 [00:07<00:01,  3.29it/s] 73%|███████▎  | 11/15 [00:08<00:01,  3.56it/s] 80%|████████  | 12/15 [00:08<00:00,  3.76it/s] 87%|████████▋ | 13/15 [00:08<00:00,  3.92it/s] 93%|█████████▎| 14/15 [00:08<00:00,  4.04it/s]100%|██████████| 15/15 [00:09<00:00,  4.12it/s]100%|██████████| 15/15 [00:09<00:00,  1.66it/s]
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx256_d1280_ff5120_l36_h20.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:05<01:12,  5.21s/it] 13%|█▎        | 2/15 [00:06<00:36,  2.79s/it] 20%|██        | 3/15 [00:06<00:20,  1.68s/it] 27%|██▋       | 4/15 [00:07<00:12,  1.17s/it] 33%|███▎      | 5/15 [00:07<00:08,  1.14it/s] 40%|████      | 6/15 [00:07<00:06,  1.40it/s] 47%|████▋     | 7/15 [00:08<00:04,  1.66it/s] 53%|█████▎    | 8/15 [00:08<00:03,  1.88it/s] 60%|██████    | 9/15 [00:08<00:02,  2.07it/s] 67%|██████▋   | 10/15 [00:09<00:02,  2.22it/s] 73%|███████▎  | 11/15 [00:09<00:01,  2.34it/s] 80%|████████  | 12/15 [00:10<00:01,  2.43it/s] 87%|████████▋ | 13/15 [00:10<00:00,  2.49it/s] 93%|█████████▎| 14/15 [00:10<00:00,  2.54it/s]100%|██████████| 15/15 [00:11<00:00,  2.57it/s]100%|██████████| 15/15 [00:11<00:00,  1.34it/s]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+Failed to create '/home/c-tadimeti/language-model-basics/cs336_systems/nsys_ctx512_d1280_ff5120_l36_h20.nsys-rep': File exists.
+Use `--force-overwrite true` to overwrite existing files.
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:05<01:21,  5.84s/it] 13%|█▎        | 2/15 [00:07<00:42,  3.25s/it] 20%|██        | 3/15 [00:07<00:25,  2.09s/it] 27%|██▋       | 4/15 [00:08<00:17,  1.55s/it] 33%|███▎      | 5/15 [00:09<00:12,  1.25s/it] 40%|████      | 6/15 [00:10<00:09,  1.08s/it] 47%|████▋     | 7/15 [00:10<00:07,  1.04it/s] 53%|█████▎    | 8/15 [00:11<00:06,  1.13it/s] 60%|██████    | 9/15 [00:12<00:05,  1.19it/s] 67%|██████▋   | 10/15 [00:13<00:04,  1.25it/s] 73%|███████▎  | 11/15 [00:13<00:03,  1.28it/s] 80%|████████  | 12/15 [00:14<00:02,  1.31it/s] 87%|████████▋ | 13/15 [00:15<00:01,  1.33it/s] 93%|█████████▎| 14/15 [00:15<00:00,  1.35it/s]100%|██████████| 15/15 [00:16<00:00,  1.36it/s]100%|██████████| 15/15 [00:16<00:00,  1.11s/it]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+  0%|          | 0/15 [00:00<?, ?it/s]/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:16<03:54, 16.77s/it] 13%|█▎        | 2/15 [00:18<01:45,  8.10s/it] 20%|██        | 3/15 [00:19<00:54,  4.53s/it] 27%|██▋       | 4/15 [00:19<00:31,  2.85s/it] 33%|███▎      | 5/15 [00:19<00:19,  1.92s/it] 40%|████      | 6/15 [00:19<00:12,  1.36s/it] 47%|████▋     | 7/15 [00:20<00:08,  1.01s/it] 53%|█████▎    | 8/15 [00:20<00:05,  1.29it/s] 60%|██████    | 9/15 [00:20<00:03,  1.62it/s] 67%|██████▋   | 10/15 [00:20<00:02,  1.96it/s] 73%|███████▎  | 11/15 [00:21<00:01,  2.29it/s] 80%|████████  | 12/15 [00:21<00:01,  2.59it/s] 87%|████████▋ | 13/15 [00:21<00:00,  2.85it/s] 93%|█████████▎| 14/15 [00:22<00:00,  3.05it/s]100%|██████████| 15/15 [00:22<00:00,  3.22it/s]100%|██████████| 15/15 [00:22<00:00,  1.49s/it]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+  0%|          | 0/15 [00:00<?, ?it/s]/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:16<03:50, 16.46s/it] 13%|█▎        | 2/15 [00:18<01:44,  8.04s/it] 20%|██        | 3/15 [00:19<00:54,  4.56s/it] 27%|██▋       | 4/15 [00:19<00:32,  2.93s/it] 33%|███▎      | 5/15 [00:19<00:20,  2.02s/it] 40%|████      | 6/15 [00:20<00:13,  1.48s/it] 47%|████▋     | 7/15 [00:20<00:09,  1.13s/it] 53%|█████▎    | 8/15 [00:21<00:06,  1.10it/s] 60%|██████    | 9/15 [00:21<00:04,  1.32it/s] 67%|██████▋   | 10/15 [00:21<00:03,  1.53it/s] 73%|███████▎  | 11/15 [00:22<00:02,  1.72it/s] 80%|████████  | 12/15 [00:22<00:01,  1.88it/s] 87%|████████▋ | 13/15 [00:23<00:00,  2.01it/s] 93%|█████████▎| 14/15 [00:23<00:00,  2.11it/s]100%|██████████| 15/15 [00:24<00:00,  2.18it/s]100%|██████████| 15/15 [00:24<00:00,  1.61s/it]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+  0%|          | 0/15 [00:00<?, ?it/s]/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:16<03:55, 16.82s/it] 13%|█▎        | 2/15 [00:19<01:48,  8.34s/it] 20%|██        | 3/15 [00:19<00:58,  4.87s/it] 27%|██▋       | 4/15 [00:20<00:35,  3.24s/it] 33%|███▎      | 5/15 [00:21<00:23,  2.34s/it] 40%|████      | 6/15 [00:22<00:16,  1.80s/it] 47%|████▋     | 7/15 [00:22<00:11,  1.45s/it] 53%|█████▎    | 8/15 [00:23<00:08,  1.23s/it] 60%|██████    | 9/15 [00:24<00:06,  1.07s/it] 67%|██████▋   | 10/15 [00:25<00:04,  1.03it/s] 73%|███████▎  | 11/15 [00:25<00:03,  1.11it/s] 80%|████████  | 12/15 [00:26<00:02,  1.17it/s] 87%|████████▋ | 13/15 [00:27<00:01,  1.22it/s] 93%|█████████▎| 14/15 [00:28<00:00,  1.26it/s]100%|██████████| 15/15 [00:28<00:00,  1.28it/s]100%|██████████| 15/15 [00:28<00:00,  1.92s/it]
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.
+  0%|          | 0/15 [00:00<?, ?it/s]/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/compile_fx.py:194: UserWarning: TensorFloat32 tensor cores for float32 matrix multiplication available but not enabled. Consider setting `torch.set_float32_matmul_precision('high')` for better performance.
+  warnings.warn(
+  7%|▋         | 1/15 [00:17<04:05, 17.51s/it]  7%|▋         | 1/15 [00:19<04:31, 19.39s/it]
+Traceback (most recent call last):
+  File "/home/c-tadimeti/language-model-basics/cs336_systems/benchmarking_script.py", line 227, in <module>
+    profile(cfg)
+    ~~~~~~~^^^^^
+  File "/home/c-tadimeti/language-model-basics/cs336_systems/benchmarking_script.py", line 104, in profile
+    logits = model(xb)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 574, in _fn
+    return fn(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 411, in forward
+    x = block(x)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 339, in forward
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 295, in forward
+    q_k_v = scaled_dot_product_attention(Q_i, K_i, V_i, mask=mask)
+  File "/home/c-tadimeti/.local/share/uv/python/cpython-3.13.3-linux-x86_64-gnu/lib/python3.13/contextlib.py", line 85, in inner
+    return func(*args, **kwds)
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 189, in annotated_scaled_dot_product_attention
+    @nvtx.range("scaled dot product attention")
+  File "/home/c-tadimeti/language-model-basics/cs336-basics/cs336_basics/transformer_modules.py", line 196, in torch_dynamo_resume_in_annotated_scaled_dot_product_attention_at_195
+    q_k = einsum(Q, K, "batch_size ... n d_k, batch_size ... m d_k -> batch_size ... n m") / math.sqrt(d_k)
+          ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/einops/einops.py", line 841, in einsum
+    def einsum(*tensors_and_pattern: Union[Tensor, str]) -> Tensor:
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/einops/einops.py", line 915, in torch_dynamo_resume_in_einsum_at_915
+    pattern = _compactify_pattern_for_einsum(pattern)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_dynamo/eval_frame.py", line 745, in _fn
+    return fn(*args, **kwargs)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/aot_autograd.py", line 1184, in forward
+    return compiled_fn(full_args)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 310, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+        compiled_fn, args_, disable_amp=disable_amp, steal_args=True
+    )
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 126, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 100, in g
+    return f(*args)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/autograd/function.py", line 575, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 1585, in forward
+    fw_outs = call_func_at_runtime_with_args(
+        CompiledFunction.compiled_fw,
+        args,
+        disable_amp=disable_amp,
+    )
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/utils.py", line 126, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 490, in wrapper
+    return compiled_fn(runtime_args)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 672, in inner_fn
+    outs = compiled_fn(args)
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/output_code.py", line 466, in __call__
+    return self.current_callable(inputs)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/c-tadimeti/language-model-basics/.venv/lib/python3.13/site-packages/torch/_inductor/utils.py", line 2128, in run
+    return model(new_inputs)
+  File "/tmp/torchinductor_c-tadimeti/ob/cobz52p2d7podgjpfy27t6ukehqzoxk6ehimh6trokig3s6dws3a.py", line 40, in call
+    buf0 = empty_strided_cuda((100, 1024, 1024), (1048576, 1024, 1), torch.float32)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 400.00 MiB. GPU 0 has a total capacity of 79.19 GiB of which 269.06 MiB is free. Including non-PyTorch memory, this process has 78.92 GiB memory in use. Of the allocated memory 77.56 GiB is allocated by PyTorch, and 622.21 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+The target application terminated. One or more process it created re-parented.
+Waiting for termination of re-parented processes.
+Use the `--wait` option to modify this behavior.

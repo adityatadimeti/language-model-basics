@@ -13,7 +13,8 @@ declare -a ctxs=(128 256 512 1024)
 declare -A d_ff=(   [768]=3072   [1024]=4096   [1280]=5120   [1600]=6400   [2560]=10240 )
 declare -A layers=( [768]=12     [1024]=24     [1280]=36     [1600]=48     [2560]=32    )
 declare -A heads=(  [768]=12     [1024]=16     [1280]=20     [1600]=25     [2560]=32    )
-declare -a d_models=(768 1024 1280 1600 2560)
+#declare -a d_models=(768 1024 1280 1600 2560)
+declare -a d_models=(2560)
 
 # 2) Loop and run nsys with a param-derived output name:
 for d in "${d_models[@]}"; do
@@ -22,6 +23,12 @@ for d in "${d_models[@]}"; do
     nl=${layers[$d]}
     nh=${heads[$d]}
     out="nsys_ctx${ctx}_d${d}_ff${f}_l${nl}_h${nh}.qdrep"
+
+    # skip if we've already profiled this setting
+    if [[ -f "${out}" ]]; then
+      echo "Skipping ${out}, already exists."
+      continue
+    fi
 
     uv run nsys profile -o "${out}" \
       python benchmarking_script.py \

@@ -32,15 +32,17 @@ class ToyModel(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, x):
+        breakpoint()
         x = self.relu(self.fc1(x))
         x = self.ln(x)
         x = self.fc2(x)
         return x
     
+device = "cuda"
+dtype = torch.bfloat16
+x = torch.randn((10, 10), dtype=dtype).to(device)
 
-dtype = torch.float32
-x = torch.randn((10, 10), dtype=dtype)
-model = ToyModel()
+model = ToyModel(10, 10).cuda()
 
-with torch.autocast(device="cuda", dtype=dtype):
+with torch.autocast("cuda", dtype=dtype):
     y = model(x)

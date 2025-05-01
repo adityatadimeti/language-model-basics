@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 import os
 import time
 import torch
@@ -11,7 +12,9 @@ from cs336_basics.optimizer import (
 )
 from cs336_basics.model_utils import load_data, save_checkpoint, load_checkpoint, get_cluster_data_path
 import sys
-from cs336_basics.transformer_modules import TransformerLM, cross_entropy, perplexity, decode
+from cs336_basics.transformer_modules import TransformerLM, cross_entropy, perplexity, decode, annotated_scaled_dot_product_attention
+import cs336_basics
+cs336_basics.transformer_modules.scaled_dot_product_attention = annotated_scaled_dot_product_attention
 import timeit
 from timeit import Timer
 import numpy as np
@@ -38,6 +41,8 @@ def profile(cfg):
     warmup_cosine_iters = int(warmup_iters_frac * max_iters)
     cosine_cycle_iters = min(int(cosine_cycle_frac * max_iters), max_iters)
 
+    precision_type    = str(cfg.get('precision_type', "torch.float32")) 
+    assert precision_type == "torch.bfloat16" or precision_type == "torch.float32", "precition_type must be either torch.bfloat16 or torch.bfloat32"
     weight_decay      = float(cfg.get('weight_decay', 1e-2))
     beta1             = float(cfg.get('beta1', 0.9))
     beta2             = float(cfg.get('beta2', 0.999))
@@ -55,7 +60,9 @@ def profile(cfg):
     profile_warmup    = int(cfg.get('profile_warmup', 5))
     profile_measurement_steps    = int(cfg.get('profile_measurement_steps', 10))
     profile_component = str(cfg.get('profile_component', 'forward'))
-    assert profile_warmup + profile_measurement_steps < max_iters, "profile warmup + profile_measurement must be less than max_iters"
+    assert profile_warmup + profile_measurement_steps < max_iters, "profile warmup + profile_measurement must be less than max_iters"\
+
+
 
     print(f"Training on device: {device}")
 
@@ -94,11 +101,14 @@ def profile(cfg):
     optimizer.zero_grad()
     t = Timer()
 
+    precision_ctx = torch.autocast(device_type=device, dtype=torch.bfloat16) if precision_type=="torch.bfloat16" else nullcontext()
+
     # Training loop
-    with tqdm(total=profile_warmup + profile_measurement_steps) as pbar:
+    with tqdm(total=profile_warmup + profile_measurement_steps) as pbar, precision_ctx:
         while it < profile_warmup:
             xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
             yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
+            
             logits = model(xb)
             B, T, V = logits.shape
 
@@ -126,7 +136,7 @@ def profile(cfg):
             pbar.update(1)
         
         while it < profile_warmup+ profile_measurement_steps:
-            # generate random batch of data
+            # generate random batch of dataf
             with nvtx.range("Training step"):
                 xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
                 yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
