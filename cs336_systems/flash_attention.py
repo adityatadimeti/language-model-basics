@@ -57,8 +57,32 @@ class FlashAttention(torch.autograd.Function):
         return O
 
     @staticmethod
-    def backward(ctx, grad_O, grad_L):
-        raise NotImplementedError   
+    def backward(ctx, grad_O, grad_L=None):
+            Q, K, V, O, L = ctx.saved_tensors
+            is_causal = getattr(ctx, "is_causal", False)
+
+            B, N_q, d = Q.shape
+            N_k = K.shape[1]
+            inv_sqrt_d = 1.0 / math.sqrt(d)
+
+            S = einsum(Q, K, 'b q d, b k d -> b q k') * inv_sqrt_d
+            if is_causal:
+                idx_q = torch.arange(N_q, device=Q.device)
+                idx_k = torch.arange(N_k, device=Q.device)
+                mask = idx_q[:, None] < idx_k[None, :]
+                S.masked_fill_(mask, -1e6)
+
+            P = torch.exp(S - L.unsqueeze(-1))
+
+            dV = einsum(P, grad_O, 'b q k, b q d -> b k d')
+            dP = einsum(grad_O, V, 'b q d, b k d -> b q k')
+            D = (P * dP).sum(dim=-1, keepdim=True)
+            dS = P * (dP - D)
+
+            dQ = einsum(dS, K, 'b q k, b k d -> b q d') * inv_sqrt_d
+            dK = einsum(dS, Q, 'b q k, b q d -> b k d') * inv_sqrt_d
+
+            return dQ, dK, dV, None
 
 
 class FlashAttentionTriton(torch.autograd.Function):
@@ -102,9 +126,34 @@ class FlashAttentionTriton(torch.autograd.Function):
         ctx.is_causal = is_causal        
         return O
 
+    @torch.compile
     @staticmethod
-    def backward(ctx, *grad_outputs):
-        raise NotImplementedError  # left for later
+    def backward(ctx, grad_O, grad_L=None):
+            Q, K, V, O, L = ctx.saved_tensors
+            is_causal = getattr(ctx, "is_causal", False)
+
+            B, N_q, d = Q.shape
+            N_k = K.shape[1]
+            inv_sqrt_d = 1.0 / math.sqrt(d)
+
+            S = einsum(Q, K, 'b q d, b k d -> b q k') * inv_sqrt_d
+            if is_causal:
+                idx_q = torch.arange(N_q, device=Q.device)
+                idx_k = torch.arange(N_k, device=Q.device)
+                mask = idx_q[:, None] < idx_k[None, :]
+                S.masked_fill_(mask, -1e6)
+
+            P = torch.exp(S - L.unsqueeze(-1))
+
+            dV = einsum(P, grad_O, 'b q k, b q d -> b k d')
+            dP = einsum(grad_O, V, 'b q d, b k d -> b q k')
+            D = (P * dP).sum(dim=-1, keepdim=True)
+            dS = P * (dP - D)
+
+            dQ = einsum(dS, K, 'b q k, b k d -> b q d') * inv_sqrt_d
+            dK = einsum(dS, Q, 'b q k, b q d -> b k d') * inv_sqrt_d
+
+            return dQ, dK, dV, None
 
 @triton.jit
 def flash_fwd_kernel(
