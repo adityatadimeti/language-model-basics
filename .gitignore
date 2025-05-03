@@ -169,3 +169,4 @@ sliced_files/
 model_checkpoints/
 
 wandb/
+cs336_systems/nsys_ctx*

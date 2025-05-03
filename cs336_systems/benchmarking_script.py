@@ -60,6 +60,8 @@ def profile(cfg):
     profile_warmup    = int(cfg.get('profile_warmup', 5))
     profile_measurement_steps    = int(cfg.get('profile_measurement_steps', 10))
     profile_component = str(cfg.get('profile_component', 'forward'))
+    profile_type      = str(cfg.get('profile_type', 'time'))
+    pass_type         = str(cfg.get('pass_type', 'forward/backward'))
     assert profile_warmup + profile_measurement_steps < max_iters, "profile warmup + profile_measurement must be less than max_iters"\
 
 
@@ -102,6 +104,10 @@ def profile(cfg):
     t = Timer()
 
     precision_ctx = torch.autocast(device_type=device, dtype=torch.bfloat16) if precision_type=="torch.bfloat16" else nullcontext()
+    training_ctx = nvtx.range("Training step") if "time" in profile_type and "backward" in profile_component else nullcontext()
+    forward_ctx = nvtx.range("Model forward pass") if "time" in profile_type and "forward" in profile_component else nullcontext()
+    backward_ctx = nvtx.range("Model backward pass") if "time" in profile_type and "backward" in profile_component else nullcontext()
+    optimizer_ctx = nvtx.range("Optimizer step") if "time" in profile_type and "optimizer" in profile_component else nullcontext()
 
     # Training loop
     with tqdm(total=profile_warmup + profile_measurement_steps) as pbar, precision_ctx:
@@ -134,79 +140,64 @@ def profile(cfg):
             
             it += 1
             pbar.update(1)
+
         
-        while it < profile_warmup+ profile_measurement_steps:
-            # generate random batch of dataf
-            with nvtx.range("Training step"):
+
+        while it < profile_warmup + profile_measurement_steps:
+            
+            if "memory" in profile_type:
+                torch.cuda.memory._record_memory_history(max_entries=1000000) 
+
+            # generate random batch of data
+            with training_ctx:
                 xb = torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
                 yb =  torch.randint(low = 0, high = vocab_size, size=(batch_size, context_length)).to(device)
 
-                with nvtx.range("Model forward pass"):
+                with forward_ctx:
                     logits = model(xb)
-                torch.cuda.synchronize()
+                if "time" in profile_type:
+                    torch.cuda.synchronize() 
+                
+                if pass_type == "forward":
+                    torch.cuda.memory._dump_snapshot(f"memory_snapshot_forward_{context_length}_{d_model}_{d_ff}_{num_layers}_{num_heads}_{it}.pickle")
+                
+                else:  #passtype is forward/backward
+                    B, T, V = logits.shape
 
-                B, T, V = logits.shape
+                    # LR schedule
+                    lr = learning_rate_schedule(it, max_lr, min_lr, warmup_cosine_iters, cosine_cycle_iters)
+                    for group in optimizer.param_groups:
+                        group['lr'] = lr
 
-                # LR schedule
-                lr = learning_rate_schedule(it, max_lr, min_lr, warmup_cosine_iters, cosine_cycle_iters)
-                for group in optimizer.param_groups:
-                    group['lr'] = lr
+                    # Loss and update
+                    loss = cross_entropy(
+                        logits.view(-1, V),          
+                        yb.reshape(-1)               
+                    )
+                    loss = loss / gradient_accum
 
-                # Loss and update
-                loss = cross_entropy(
-                    logits.view(-1, V),          
-                    yb.reshape(-1)               
-                )
-                loss = loss / gradient_accum
-
-                with nvtx.range("Model backward pass"):
-                    loss.backward()
-                torch.cuda.synchronize()
+                    with backward_ctx:
+                        loss.backward()
+                    if "time" in profile_type:
+                        torch.cuda.synchronize() 
 
 
-                if max_grad_norm > 0:
-                    gradient_clipping(model.parameters(), max_grad_norm)
+                    if max_grad_norm > 0:
+                        gradient_clipping(model.parameters(), max_grad_norm)
 
-                with nvtx.range("Optimizer step"):
-                    optimizer.step()
-                torch.cuda.synchronize()
-                optimizer.zero_grad()
+                    with optimizer_ctx:
+                        optimizer.step()
+                    if "time" in profile_type:
+                        torch.cuda.synchronize() 
+                    optimizer.zero_grad()
 
+                    torch.cuda.memory._dump_snapshot(f"memory_snapshot_forward_backward_{context_length}_{d_model}_{d_ff}_{num_layers}_{num_heads}_{it}.pickle")
+                    #torch.cuda.memory._record_memory_history(enabled=None)
                 
                 it += 1
                 pbar.update(1)
-    #print(f"Average forward time: {np.mean(forward_times)}")
-    #print(f"Stdev forward time: {np.std(forward_times)}")
-
-    #print(f"Average backward time: {np.mean(backward_times)}")
-    #print(f"Stdev backward time: {np.std(backward_times)}")
-
+        torch.cuda.memory._record_memory_history(enabled=None)
     print(f"Training complete at step {it}")
-
-    # Save times to numpy file
-    # results = {
-    #     'forward_times': np.array(forward_times),
-    #     'backward_times': np.array(backward_times),
-    #     'mean_forward': np.mean(forward_times),
-    #     'std_forward': np.std(forward_times),
-    #     'mean_backward': np.mean(backward_times),
-    #     'std_backward': np.std(backward_times)
-    # }
-
-    # Create directory to save results if it doesn't exist
-    # results_dir = 'benchmarking_results_warmup_one'
-    # os.makedirs(results_dir, exist_ok=True)
-
-    # # Create filename with model parameters
-    # filename = f"bench_ctx{context_length}_d{d_model}_ff{d_ff}_l{num_layers}_h{num_heads}.pkl"
-    # filepath = os.path.join(results_dir, filename)
-
-    # # Save results to pickle file
-    # with open(filepath, 'wb') as f:
-    #     pickle.dump(results, f)
-
-    # print(f"Results saved to {filepath}")
-
 
 
 if __name__ == "__main__":

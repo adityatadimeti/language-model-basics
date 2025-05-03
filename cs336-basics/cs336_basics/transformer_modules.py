@@ -8,6 +8,8 @@ import math
 from cs336_basics.tokenizer import Tokenizer
 from tqdm import tqdm
 
+import torch.cuda.nvtx as nvtx
+
 class Linear(torch.nn.Module):
     def __init__(self, in_features: int, out_features: int, device: torch.device | None=None, dtype: torch.dtype | None=None):
         """
@@ -184,12 +186,32 @@ def scaled_dot_product_attention(Q: torch.Tensor, K: torch.Tensor, V: torch.Tens
     q_k_v = einsum(q_k, V, "batch_size ... n m, batch_size ... m d_v -> batch_size ... n d_v")
     return q_k_v
 
+@nvtx.range("scaled dot product attention")
+def annotated_scaled_dot_product_attention(Q: torch.Tensor, K: torch.Tensor, V: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
+    """
+    mask is an optional boolean mask of shape (seq_len, seq_len)
+    """
+    d_k = Q.shape[-1]
+    with nvtx.range("computing attention scores"):
+        q_k = einsum(Q, K, "batch_size ... n d_k, batch_size ... m d_k -> batch_size ... n m") / math.sqrt(d_k)
+    torch.cuda.synchronize()
+    if mask is not None:
+        with nvtx.range("computing softmax"):
+            q_k = softmax(torch.where(mask, q_k, float('-inf')), -1)
+        torch.cuda.synchronize()
+    with nvtx.range("final matmul"):
+        q_k_v = einsum(q_k, V, "batch_size ... n m, batch_size ... m d_v -> batch_size ... n d_v")
+    torch.cuda.synchronize()
+    return q_k_v
+
+
+
 
 
 
 class CausalMultiHeadAttention(torch.nn.Module):
-    def __init__(self, d_model: int, num_heads: int, q_proj: torch.Tensor, k_proj: torch.Tensor, v_proj: torch.Tensor,
-                 o_proj: torch.Tensor, theta: float | None =  None,token_positions: torch.Tensor | None = None, max_seq_len: int | None = None):
+    def __init__(self, d_model: int, num_heads: int, q_proj: torch.Tensor | None=None, k_proj: torch.Tensor|None=None, v_proj: torch.Tensor|None=None,
+                 o_proj: torch.Tensor|None=None, theta: float | None =  None,token_positions: torch.Tensor | None = None, max_seq_len: int | None = None):
         super().__init__()
         self.d_model = d_model
         self.num_heads = num_heads
@@ -213,9 +235,6 @@ class CausalMultiHeadAttention(torch.nn.Module):
             with torch.no_grad():
                 self.o_proj.weights.copy_(o_proj)
 
-        
-
-
         self.d_k = self.d_v = self.d_model // self.num_heads
         
         """
@@ -234,8 +253,6 @@ class CausalMultiHeadAttention(torch.nn.Module):
             self.rope = None
 
     def forward(self, in_features: torch.Tensor) -> torch.Tensor:
-        
-
         sequence_length = in_features.shape[-2]
         
         # Q = einsum(in_features, self.q_proj, "... s d_in, d_k d_in -> ... s d_k")

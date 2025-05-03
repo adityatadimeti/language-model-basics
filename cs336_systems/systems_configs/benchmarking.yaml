@@ -42,8 +42,10 @@ save_interval: 5000000000
 
 # Profiling parameters
 profile_warmup: 5
-profile_measurement_steps: 10
-profile_component: "forward/backward" # either "forward" or "forward/backward"
+profile_measurement_steps: 1
+profile_component: "forward, backward, optimizer" # 
+profile_type: "memory" # time, memory, or time/memory
+pass_type: "forward" # forward or forward/backward
 
 # Mixed precision
 precision_type: "torch.bfloat16" # torch.bfloat16 or torch.float32
