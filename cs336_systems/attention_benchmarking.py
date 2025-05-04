@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Single-head causal-attention micro-benchmark w/ periodic logging and LaTeX output
-===============================================================================
-
-Runs the same sweep as before, but now prints progress and dumps a LaTeX table.
-"""
 import itertools
 import json
 import time
@@ -13,7 +7,6 @@ import torch
 import pandas as pd
 from cs336_basics.transformer_modules import CausalMultiHeadAttention
 
-# ---------------- hyper-params ----------------
 BATCH      = 8
 DIMS       = [16, 32, 64, 128]
 SEQS       = [256, 1024, 4096, 8192, 16384]
@@ -22,14 +15,12 @@ DEVICE     = "cuda" if torch.cuda.is_available() else "cpu"
 DTYPE_SIZE = 4   # fp32
 
 def est_attention_bytes(b, s, d, bytes_per_elem=DTYPE_SIZE):
-    """Upper-bound on activ-memory for one self-attention call (no grads)."""
     qkv   = 3 * b * s * d
     attn  = b * s * s
     out   = b * s * d
     return (qkv + attn + out) * bytes_per_elem    # bytes
 
 def run_cfg(d_model: int, seq_len: int):
-    """Time fw / bw or report OOM."""
     torch.cuda.empty_cache()
     result = dict(d_model=d_model, seq_len=seq_len)
     try:
@@ -37,22 +28,18 @@ def run_cfg(d_model: int, seq_len: int):
         x     = torch.randn(BATCH, seq_len, d_model,
                             device=DEVICE, requires_grad=True)
 
-        # warm-up
         for _ in range(10):
             _ = model(x); torch.cuda.synchronize()
 
-        # forward timing
         t0 = time.perf_counter()
         for _ in range(N_ITERS):
             _ = model(x); torch.cuda.synchronize()
         fwd_ms = (time.perf_counter() - t0) * 1e3 / N_ITERS
 
-        # memory before backward
         torch.cuda.reset_peak_memory_stats()
         _ = model(x); torch.cuda.synchronize()
         mem_gib = torch.cuda.max_memory_allocated() / 1024**3
 
-        # backward timing
         t0 = time.perf_counter()
         for _ in range(N_ITERS):
             out  = model(x)
@@ -93,7 +80,6 @@ if __name__ == "__main__":
               f"bwd={res.get('backward_ms','-'):>6}ms  "
               f"mem={res.get('mem_GiB','-'):>5}GiB")
 
-    # build DataFrame and emit LaTeX
     df = pd.DataFrame(results)
     latex = df.to_latex(index=False, float_format="%.3f")
 

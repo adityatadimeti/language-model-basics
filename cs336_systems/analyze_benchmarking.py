@@ -59,18 +59,15 @@ def format_time(mean, std):
     return f"{mean:.5f} ± {std:.5f}"
 
 def df_to_latex(df):
-    # make a copy so we don’t clobber the original
     tmp = df.copy()
-    # format in‐place
+
     tmp["forward"]  = tmp.apply(lambda row: format_time(row["mean_forward"],  row["std_forward"]),  axis=1)
     tmp["backward"] = tmp.apply(lambda row: format_time(row["mean_backward"], row["std_backward"]), axis=1)
-    # select + sort
+
     table = tmp[["model_size", "context_length", "forward", "backward"]]
     table = table.sort_values(by=["model_size", "context_length"])
     return table.to_latex(index=False, escape=False, column_format="|c|c|c|c|")
 
-# Now generate LaTeX for each
-#latex_no_warmup = df_to_latex(df_no_warmup)
 latex_warmup    = df_to_latex(df_warmup)
 
 #print("% no warmup\n", latex_no_warmup)
