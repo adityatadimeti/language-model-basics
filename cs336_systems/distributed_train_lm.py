@@ -6,6 +6,8 @@ import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import torch.nn as nn
+from torch._utils import _flatten_dense_tensors, _unflatten_dense_tensors
+
 
 from tqdm import tqdm
 
@@ -39,6 +41,26 @@ def naive_allreduce(model):
     torch.cuda.synchronize()
     return time.perf_counter() - t0
 
+def minimal_ddp_flat_benchmarking(model):
+    # collect all grads (in order)
+    grads = [p.grad for p in model.parameters() if p.grad is not None]
+    if not grads:
+        return 0.0
+
+    # flatten
+    flat = _flatten_dense_tensors(grads)
+    t0 = time.perf_counter()
+    dist.all_reduce(flat, op=dist.ReduceOp.SUM)
+    flat.div_(dist.get_world_size())
+    torch.cuda.synchronize()
+    t_comm = time.perf_counter() - t0
+
+    for buf, synced in zip(grads, _unflatten_dense_tensors(flat, grads)):
+        buf.copy_(synced)
+
+    return t_comm
+
+
 def benchmark(rank, args):
     device = setup(rank, args.world_size)
 
@@ -58,7 +80,6 @@ def benchmark(rank, args):
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
-    # synthetic data
     batch = args.batch_size
     dummy_x = torch.randint(0, XL['vocab_size'], (batch, XL['context_length']), device=device)
     dummy_y = torch.randint(0, XL['vocab_size'], (batch, XL['context_length']), device=device)
@@ -66,7 +87,6 @@ def benchmark(rank, args):
     times_compute = []
     times_comm    = []
 
-    # warmup
     print(f"[Rank {rank}] Warmup...")
 
     for _ in tqdm(range(args.warmup), desc=f"Rank {rank} Warmup", position=rank):
@@ -76,7 +96,8 @@ def benchmark(rank, args):
             logits.view(-1, logits.size(-1)), dummy_y.view(-1)
         )
         loss.backward()
-        naive_allreduce(model)
+        #naive_allreduce(model)
+        comm_time = minimal_ddp_flat_benchmarking(model)
         optimizer.step()
     dist.barrier()
 
@@ -98,7 +119,8 @@ def benchmark(rank, args):
         t_c1 = time.perf_counter()
 
         # measure comm
-        t_comm = naive_allreduce(model)
+        #t_comm = naive_allreduce(model)
+        t_comm = minimal_ddp_flat_benchmarking(model)
 
         optimizer.step()
         torch.cuda.synchronize()
